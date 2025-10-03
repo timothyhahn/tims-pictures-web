@@ -4,6 +4,26 @@ import { env } from '$env/dynamic/private';
 
 const API_URL = env.API_URL || 'http://api:8080';
 
+// Allowlist of API endpoints that can be proxied
+// Only these endpoints are accessible through the proxy
+const ALLOWED_ENDPOINTS = [
+	// Albums
+	{ method: 'GET', pattern: /^v1\/albums$/ },
+	{ method: 'GET', pattern: /^v1\/albums\/[^/]+$/ },
+	{ method: 'GET', pattern: /^v1\/albums\/slug\/[^/]+$/ },
+
+	// Pictures
+	{ method: 'GET', pattern: /^v1\/pictures\/recent$/ },
+	{ method: 'GET', pattern: /^v1\/pictures\/[^/]+$/ },
+	{ method: 'GET', pattern: /^v1\/albums\/[^/]+\/pictures$/ }
+] as const;
+
+function isAllowedEndpoint(method: string, path: string): boolean {
+	return ALLOWED_ENDPOINTS.some(
+		(endpoint) => endpoint.method === method && endpoint.pattern.test(path)
+	);
+}
+
 async function handleApiResponse(response: Response) {
 	if (response.status === 204) {
 		return new Response(null, { status: 204 });
@@ -42,6 +62,12 @@ async function proxyRequest(
 	method: string,
 	body?: string
 ): Promise<Response> {
+	// Check if the endpoint is allowed
+	if (!isAllowedEndpoint(method, path)) {
+		console.error(`[API Proxy] Blocked unauthorized endpoint: ${method} /${path}`);
+		return json({ error: 'Endpoint not allowed' }, { status: 403 });
+	}
+
 	const apiUrl = `${API_URL}/${path}${queryString}`;
 
 	try {
@@ -62,16 +88,14 @@ export const GET: RequestHandler = async ({ params, url }) => {
 	return proxyRequest(params.path, url.search, 'GET');
 };
 
-export const POST: RequestHandler = async ({ params, url, request }) => {
-	const body = await request.text();
-	return proxyRequest(params.path, url.search, 'POST', body);
+export const POST: RequestHandler = async () => {
+	return json({ error: 'Method not allowed' }, { status: 405 });
 };
 
-export const PUT: RequestHandler = async ({ params, url, request }) => {
-	const body = await request.text();
-	return proxyRequest(params.path, url.search, 'PUT', body);
+export const PUT: RequestHandler = async () => {
+	return json({ error: 'Method not allowed' }, { status: 405 });
 };
 
-export const DELETE: RequestHandler = async ({ params, url }) => {
-	return proxyRequest(params.path, url.search, 'DELETE');
+export const DELETE: RequestHandler = async () => {
+	return json({ error: 'Method not allowed' }, { status: 405 });
 };
