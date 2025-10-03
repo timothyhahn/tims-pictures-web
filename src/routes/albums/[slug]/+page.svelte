@@ -17,8 +17,8 @@
 
 	const PER_PAGE = 30;
 
-	// Use columns for small albums, grid for large albums
-	let useColumnsLayout = $derived(totalPictures < 50);
+	// Use masonry grid for most albums, columns only for very small ones
+	let useColumnsLayout = $derived(totalPictures <= 3); // One row or less on desktop
 
 	// Derive OpenGraph URL from page store without query params
 	let ogUrl = $derived($pageStore.url.origin + $pageStore.url.pathname);
@@ -210,7 +210,7 @@
 	{#if pictures.length > 0}
 		<div class={useColumnsLayout ? 'columns-layout' : 'grid-layout'}>
 			{#each pictures as picture (picture.id)}
-				<div class="photo-item group mb-4 overflow-hidden rounded-lg {useColumnsLayout ? 'break-inside-avoid' : ''}">
+				<div class="photo-item group mb-4 overflow-hidden {useColumnsLayout ? 'break-inside-avoid' : ''}">
 					<a
 						href="/pictures/{picture.id}?back=album"
 						onclick={(e) => handlePhotoClick(e, picture)}
@@ -219,7 +219,7 @@
 						<img
 							src="{picture.image_url}?class=thumbnail"
 							alt={picture.description || 'Photo'}
-							class="w-full cursor-pointer transition-transform duration-300 group-hover:scale-105"
+							class="w-full cursor-pointer"
 							loading="lazy"
 						/>
 					</a>
@@ -250,6 +250,14 @@
 	/* Fade in animation for new images */
 	.photo-item {
 		animation: fadeIn 0.3s ease-in;
+		border-radius: 0.25rem;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+		transition: box-shadow 0.2s ease, transform 0.2s ease;
+	}
+
+	.photo-item:hover {
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+		transform: translateY(-2px);
 	}
 
 	@keyframes fadeIn {
@@ -269,6 +277,17 @@
 		gap: 1rem;
 	}
 
+	.columns-layout .photo-item {
+		border-radius: 0.25rem;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+		transition: box-shadow 0.2s ease, transform 0.2s ease;
+	}
+
+	.columns-layout .photo-item:hover {
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+		transform: translateY(-2px);
+	}
+
 	@media (min-width: 640px) {
 		.columns-layout {
 			columns: 2;
@@ -281,16 +300,44 @@
 		}
 	}
 
-	/* Grid layout for large albums - square grid */
+	/* Grid layout with faux masonry - complex repeating pattern */
 	.grid-layout {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+		grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
+		grid-auto-rows: 400px;
 		gap: 1rem;
+		grid-auto-flow: dense; /* Fill gaps optimally */
+	}
+
+	.grid-layout .photo-item {
+		height: 100%;
 	}
 
 	.grid-layout img {
 		width: 100%;
-		height: 400px;
+		height: 100%;
 		object-fit: cover;
+	}
+
+	/* Create subtle pattern using larger primes - spreads tall items out more */
+	/* Pattern repeats every 247 items (13 × 19) making it very non-obvious */
+	.grid-layout .photo-item:nth-child(13n + 5),
+	.grid-layout .photo-item:nth-child(19n + 11) {
+		grid-row: span 2;
+	}
+
+	/* Responsive adjustments */
+	@media (max-width: 1023px) {
+		.grid-layout {
+			grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+			grid-auto-rows: 350px;
+		}
+	}
+
+	@media (max-width: 639px) {
+		.grid-layout {
+			grid-template-columns: 1fr;
+			grid-auto-rows: 400px;
+		}
 	}
 </style>

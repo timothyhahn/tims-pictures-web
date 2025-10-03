@@ -15,7 +15,7 @@
 
 <a
 	href="/albums/{album.slug}"
-	class="block overflow-hidden rounded-lg bg-gray-800 transition-all duration-200 hover:scale-[1.02] hover:shadow-xl"
+	class="album-card block overflow-hidden rounded bg-gray-800"
 >
 	<!-- Cover Image or Placeholder -->
 	{#if album.cover_picture_url}
@@ -72,3 +72,15 @@
 		</div>
 	</div>
 </a>
+
+<style>
+	.album-card {
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+		transition: box-shadow 0.2s ease, transform 0.2s ease;
+	}
+
+	.album-card:hover {
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+		transform: translateY(-2px);
+	}
+</style>
