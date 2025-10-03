@@ -28,42 +28,37 @@
 	$effect(() => {
 		if (!initialLoad) {
 			data.picturesData
-				.then(
-					({ pictures: loadedPictures, totalPictures: total }) => {
-						pictures = loadedPictures;
-						totalPictures = total;
-						initialLoad = true;
+				.then(({ pictures: loadedPictures, totalPictures: total }) => {
+					pictures = loadedPictures;
+					totalPictures = total;
+					initialLoad = true;
 
-						// Check if we got less than a full page, meaning we're done
-						if (loadedPictures.length < PER_PAGE) {
-							done = true;
-						}
+					// Check if we got less than a full page, meaning we're done
+					if (loadedPictures.length < PER_PAGE) {
+						done = true;
+					}
 
-						// Check for saved state after both album and pictures load
-						const savedState = sessionStorage.getItem('albumState');
-						if (savedState) {
-							try {
-								const state = JSON.parse(savedState);
-								// Check if data is fresh (less than 5 minutes old) and same album
-								if (
-									Date.now() - state.timestamp < 5 * 60 * 1000 &&
-									state.albumId === album.id
-								) {
-									pictures = state.pictures;
-									page = state.page;
-									done = state.done;
+					// Check for saved state after both album and pictures load
+					const savedState = sessionStorage.getItem('albumState');
+					if (savedState) {
+						try {
+							const state = JSON.parse(savedState);
+							// Check if data is fresh (less than 5 minutes old) and same album
+							if (Date.now() - state.timestamp < 5 * 60 * 1000 && state.albumId === album.id) {
+								pictures = state.pictures;
+								page = state.page;
+								done = state.done;
 
-									setTimeout(() => {
-										window.scrollTo(0, state.scrollY);
-									}, 0);
-								}
-								sessionStorage.removeItem('albumState');
-							} catch {
-								sessionStorage.removeItem('albumState');
+								setTimeout(() => {
+									window.scrollTo(0, state.scrollY);
+								}, 0);
 							}
+							sessionStorage.removeItem('albumState');
+						} catch {
+							sessionStorage.removeItem('albumState');
 						}
 					}
-				)
+				})
 				.catch(() => {
 					// Errors will be caught by the {#await} block
 				});
@@ -161,7 +156,7 @@
 	<!-- Album Header -->
 	{#if album}
 		<div class="mb-8">
-			<h1 class="mb-2 text-4xl font-bold">{album.name}</h1>
+			<h1 class="mb-2 text-6xl font-extralight">{album.name}</h1>
 			{#if album.description}
 				<p class="text-lg text-gray-400">{album.description}</p>
 			{/if}
@@ -181,10 +176,7 @@
 		<div class="columns-1 gap-4 sm:columns-2 lg:columns-3 xl:columns-4">
 			{#each pictures as picture (picture.id)}
 				<div class="group mb-4 break-inside-avoid overflow-hidden rounded-lg">
-					<a
-						href="/pictures/{picture.id}?back=album"
-						onclick={(e) => handlePhotoClick(e, picture)}
-					>
+					<a href="/pictures/{picture.id}?back=album" onclick={(e) => handlePhotoClick(e, picture)}>
 						<img
 							src="{picture.image_url}?class=thumbnail"
 							alt={picture.description || 'Photo'}

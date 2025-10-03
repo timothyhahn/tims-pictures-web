@@ -8,7 +8,7 @@
 <div class="container mx-auto p-6">
 	<!-- Header -->
 	<div class="mb-8">
-		<h1 class="mb-2 text-4xl font-bold">Albums</h1>
+		<h1 class="mb-2 text-6xl font-thin">Albums</h1>
 	</div>
 
 	<!-- Albums Grid -->

@@ -43,7 +43,7 @@
 
 	<!-- Album Info -->
 	<div class="p-4">
-		<h3 class="mb-1 text-xl font-semibold">{album.name}</h3>
+		<h3 class="mb-1 text-xl font-thin">{album.name}</h3>
 
 		{#if album.description}
 			<p class="mb-2 line-clamp-2 text-sm text-gray-400">
@@ -53,7 +53,8 @@
 
 		<div class="flex items-center gap-2 text-xs text-gray-500">
 			<span>
-				{album.picture_count} {album.picture_count === 1 ? 'image' : 'images'}
+				{album.picture_count}
+				{album.picture_count === 1 ? 'image' : 'images'}
 			</span>
 
 			{#if album.has_password}
