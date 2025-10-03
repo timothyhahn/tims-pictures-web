@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { tick } from 'svelte';
 	import ScrollToTopButton from '$lib/components/ScrollToTopButton.svelte';
 	import type { PageData } from './$types';
 	import type { Picture } from '$lib/api/types';
@@ -16,14 +15,10 @@
 	let done = $state(false);
 	let initialLoad = $state(false);
 
-	// Masonry grid state
-	let masonryElement: HTMLElement | null = null;
-	let gridItems: HTMLElement[] = [];
-	let ncol = $state(0);
-	let gap = $state(0);
-	let mod = $state(0);
+	const PER_PAGE = 30;
 
-	const PER_PAGE = 20;
+	// Use columns for small albums, grid for large albums
+	let useColumnsLayout = $derived(totalPictures < 50);
 
 	// Derive OpenGraph URL from page store without query params
 	let ogUrl = $derived($pageStore.url.origin + $pageStore.url.pathname);
@@ -40,8 +35,8 @@
 					totalPictures = total;
 					initialLoad = true;
 
-					// Check if we got less than a full page, meaning we're done
-					if (loadedPictures.length < PER_PAGE) {
+					// Check if we've loaded all pictures
+					if (loadedPictures.length >= total) {
 						done = true;
 					}
 
@@ -91,12 +86,19 @@
 			}
 			const newData = await response.json();
 
-			if (newData.data.length === 0 || newData.data.length < PER_PAGE) {
+			// If we got no data, we're definitely done
+			if (!newData.data || newData.data.length === 0) {
 				done = true;
+				return;
 			}
 
 			pictures = [...pictures, ...newData.data];
 			page++;
+
+			// Check if we've loaded all pictures based on total count
+			if (pictures.length >= totalPictures) {
+				done = true;
+			}
 		} catch (error) {
 			console.error('Failed to load more pictures:', error);
 			done = true;
@@ -113,8 +115,13 @@
 			return;
 		}
 
-		// Check if we're near the bottom of the page
-		const nearBottom = y + window.innerHeight >= document.body.scrollHeight - 100;
+		// Check if we're near the bottom of the page - trigger earlier to preload
+		// Use 1.5x viewport height as threshold so it works on all screen sizes
+		const scrollHeight = document.documentElement.scrollHeight;
+		const windowHeight = window.innerHeight;
+		const scrollPosition = y;
+		const threshold = windowHeight * 1.5;
+		const nearBottom = scrollPosition + windowHeight >= scrollHeight - threshold;
 
 		if (nearBottom && !loading && !done && initialLoad) {
 			// Clear any existing timeout
@@ -163,88 +170,7 @@
 			goto(`/pictures/${picture.id}?back=album`);
 		}
 	}
-
-	// Masonry layout logic
-	const refreshLayout = async (): Promise<void> => {
-		if (!masonryElement || gridItems.length === 0) return;
-
-		const currentNcol = getComputedStyle(masonryElement).gridTemplateColumns.split(' ').length;
-
-		gridItems.forEach((c) => {
-			const newHeight = c.getBoundingClientRect().height;
-			const currentHeight = parseFloat(c.dataset.h || '0');
-
-			if (newHeight !== currentHeight) {
-				c.dataset.h = newHeight.toString();
-				mod++;
-			}
-		});
-
-		if (ncol !== currentNcol || mod > 0) {
-			ncol = currentNcol;
-			gridItems.forEach((c) => c.style.removeProperty('margin-top'));
-
-			if (ncol > 1) {
-				gridItems.slice(ncol).forEach((c, i) => {
-					const prevBottom = gridItems[i].getBoundingClientRect().bottom;
-					const currTop = c.getBoundingClientRect().top;
-					c.style.marginTop = `${prevBottom + gap - currTop}px`;
-				});
-			}
-
-			mod = 0;
-		}
-	};
-
-	const calcGrid = async (): Promise<void> => {
-		await tick();
-
-		if (!masonryElement) return;
-
-		// Check if browser supports native masonry
-		if (getComputedStyle(masonryElement).gridTemplateRows !== 'masonry') {
-			gap = parseFloat(getComputedStyle(masonryElement).gridRowGap);
-			gridItems = Array.from(masonryElement.childNodes).filter(
-				(c): c is HTMLElement =>
-					c instanceof HTMLElement && +getComputedStyle(c).gridColumnEnd !== -1
-			);
-
-			refreshLayout();
-		}
-	};
-
-	// Effect to handle masonry layout when pictures change
-	$effect(() => {
-		if (pictures.length > 0) {
-			calcGrid();
-		}
-	});
-
-	// Effect to handle window resize
-	$effect(() => {
-		if (typeof window !== 'undefined') {
-			window.addEventListener('resize', refreshLayout);
-
-			return () => {
-				window.removeEventListener('resize', refreshLayout);
-			};
-		}
-	});
 </script>
-
-<style>
-	.photo-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(min(20rem, 100%), 1fr));
-		grid-template-rows: masonry;
-		gap: 1rem;
-		align-items: start;
-	}
-
-	.photo-grid > * {
-		align-self: start;
-	}
-</style>
 
 <svelte:window bind:scrollY={y} />
 
@@ -280,11 +206,11 @@
 		</div>
 	{/if}
 
-	<!-- Masonry Grid - Using CSS Grid for left-to-right, top-to-bottom ordering -->
+	<!-- Photo layout - columns for small albums, grid for large albums -->
 	{#if pictures.length > 0}
-		<div bind:this={masonryElement} class="photo-grid">
+		<div class={useColumnsLayout ? 'columns-layout' : 'grid-layout'}>
 			{#each pictures as picture (picture.id)}
-				<div class="group overflow-hidden rounded-lg">
+				<div class="photo-item group mb-4 overflow-hidden rounded-lg {useColumnsLayout ? 'break-inside-avoid' : ''}">
 					<a
 						href="/pictures/{picture.id}?back=album"
 						onclick={(e) => handlePhotoClick(e, picture)}
@@ -319,3 +245,52 @@
 </div>
 
 <ScrollToTopButton show={y > 300} {scrollToTop} />
+
+<style>
+	/* Fade in animation for new images */
+	.photo-item {
+		animation: fadeIn 0.3s ease-in;
+	}
+
+	@keyframes fadeIn {
+		from {
+			opacity: 0;
+			transform: translateY(10px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	/* Columns layout for small albums - top to bottom, left to right */
+	.columns-layout {
+		columns: 1;
+		gap: 1rem;
+	}
+
+	@media (min-width: 640px) {
+		.columns-layout {
+			columns: 2;
+		}
+	}
+
+	@media (min-width: 1280px) {
+		.columns-layout {
+			columns: 3;
+		}
+	}
+
+	/* Grid layout for large albums - square grid */
+	.grid-layout {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+		gap: 1rem;
+	}
+
+	.grid-layout img {
+		width: 100%;
+		height: 400px;
+		object-fit: cover;
+	}
+</style>
