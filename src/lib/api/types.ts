@@ -13,6 +13,7 @@ export interface Album {
 	has_password: boolean;
 	cover_picture_id?: string;
 	cover_picture_url?: string;
+	picture_count: number;
 }
 
 export interface Picture {

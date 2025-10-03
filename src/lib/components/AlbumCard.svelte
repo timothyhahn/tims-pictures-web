@@ -6,6 +6,11 @@
 	}
 
 	let { album }: Props = $props();
+
+	function handleImageLoad(event: Event) {
+		const img = event.target as HTMLImageElement;
+		img.classList.add('loaded');
+	}
 </script>
 
 <a
@@ -18,8 +23,9 @@
 			<img
 				src="{album.cover_picture_url}?class=thumbnail"
 				alt="{album.name} cover"
-				class="h-full w-full object-cover"
+				class="image-fade-in h-full w-full object-cover"
 				loading="lazy"
+				onload={handleImageLoad}
 			/>
 		</div>
 	{:else}
@@ -46,9 +52,9 @@
 		{/if}
 
 		<div class="flex items-center gap-2 text-xs text-gray-500">
-			<time datetime={album.created_at}>
-				{new Date(album.created_at).toLocaleDateString()}
-			</time>
+			<span>
+				{album.picture_count} {album.picture_count === 1 ? 'image' : 'images'}
+			</span>
 
 			{#if album.has_password}
 				<span class="inline-flex items-center gap-1">

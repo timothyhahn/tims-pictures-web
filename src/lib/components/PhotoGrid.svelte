@@ -11,6 +11,11 @@
 	function handleClick(picture: Picture) {
 		onPhotoClick?.(picture);
 	}
+
+	function handleImageLoad(event: Event) {
+		const img = event.target as HTMLImageElement;
+		img.classList.add('loaded');
+	}
 </script>
 
 <div class="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -19,10 +24,11 @@
 			<img
 				src="{picture.image_url}?class=thumbnail"
 				alt={picture.description || 'Photo'}
-				class="block h-auto w-full cursor-pointer object-cover transition-transform duration-300 group-hover:scale-105"
+				class="image-fade-in block h-auto w-full cursor-pointer object-cover transition-transform duration-300 group-hover:scale-105"
 				style="aspect-ratio: 1;"
 				loading="lazy"
 				onclick={() => handleClick(picture)}
+				onload={handleImageLoad}
 			/>
 		</div>
 	{/each}
