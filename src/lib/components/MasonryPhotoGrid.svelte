@@ -5,23 +5,127 @@
 		pictures: Picture[];
 		useColumnsLayout?: boolean;
 		backLocation?: string;
+		albumIdentifier?: string; // UUID or slug to determine pattern
 		onPhotoClick?: (event: MouseEvent, picture: Picture) => void;
 	}
 
-	let { pictures, useColumnsLayout = false, backLocation = 'album', onPhotoClick }: Props = $props();
+	let {
+		pictures,
+		useColumnsLayout = false,
+		backLocation = 'album',
+		albumIdentifier,
+		onPhotoClick
+	}: Props = $props();
 
-	// Determine if an item is tall based on the masonry pattern (13n+5 or 19n+11 in 1-indexed CSS)
-	function isTallItem(index: number): boolean {
-		// Convert 0-indexed to match CSS nth-child pattern
-		// 13n + 5 (1-indexed) = index % 13 === 4 (0-indexed)
-		// 19n + 11 (1-indexed) = index % 19 === 10 (0-indexed)
-		return index % 13 === 4 || index % 19 === 10;
+	// ============================================================================
+	// MASONRY PATTERN SYSTEM
+	// ============================================================================
+	// We use 3 different masonry patterns based on album identifier to make the
+	// repeating pattern virtually undetectable. Each pattern uses different prime
+	// numbers to determine tall/wide/big items.
+	//
+	// Pattern selection: Hash the album identifier and mod 3 to get 0, 1, or 2
+	// ============================================================================
+
+	/**
+	 * Define 3 distinct masonry patterns using different prime numbers.
+	 * Each pattern has two sets of modulo checks for tall and wide items.
+	 * The intersection creates rare "big" items (2x2).
+	 */
+	const MASONRY_PATTERNS = [
+		// Pattern 0: Original pattern
+		{
+			tall: [
+				{ mod: 13, offset: 4 }, // 13n + 5 in 1-indexed
+				{ mod: 19, offset: 10 } // 19n + 11 in 1-indexed
+			],
+			wide: [
+				{ mod: 17, offset: 2 }, // 17n + 3 in 1-indexed
+				{ mod: 23, offset: 6 } // 23n + 7 in 1-indexed
+			]
+		},
+		// Pattern 1: Different primes for variety
+		{
+			tall: [
+				{ mod: 11, offset: 3 }, // 11n + 4 in 1-indexed
+				{ mod: 17, offset: 8 } // 17n + 9 in 1-indexed
+			],
+			wide: [
+				{ mod: 13, offset: 5 }, // 13n + 6 in 1-indexed
+				{ mod: 19, offset: 12 } // 19n + 13 in 1-indexed
+			]
+		},
+		// Pattern 2: Yet another set
+		{
+			tall: [
+				{ mod: 23, offset: 7 }, // 23n + 8 in 1-indexed
+				{ mod: 29, offset: 14 } // 29n + 15 in 1-indexed
+			],
+			wide: [
+				{ mod: 11, offset: 6 }, // 11n + 7 in 1-indexed
+				{ mod: 13, offset: 9 } // 13n + 10 in 1-indexed
+			]
+		}
+	] as const;
+
+	/**
+	 * Simple string hash function to convert album identifier to a number
+	 */
+	function hashString(str: string): number {
+		let hash = 0;
+		for (let i = 0; i < str.length; i++) {
+			const char = str.charCodeAt(i);
+			hash = (hash << 5) - hash + char;
+			hash = hash & hash; // Convert to 32-bit integer
+		}
+		return Math.abs(hash);
 	}
 
+	/**
+	 * Select which masonry pattern to use based on album identifier
+	 * Falls back to pattern 0 if no identifier provided
+	 */
+	const patternIndex = albumIdentifier ? hashString(albumIdentifier) % 3 : 0;
+	const selectedPattern = MASONRY_PATTERNS[patternIndex];
+
+	/**
+	 * Check if an item should be tall (span 2 rows) based on selected pattern
+	 */
+	function isTallItem(index: number): boolean {
+		return selectedPattern.tall.some((rule) => index % rule.mod === rule.offset);
+	}
+
+	/**
+	 * Check if an item should be wide (span 2 columns) based on selected pattern
+	 */
+	function isWideItem(index: number): boolean {
+		return selectedPattern.wide.some((rule) => index % rule.mod === rule.offset);
+	}
+
+	/**
+	 * Check if an item should be big (span 2 rows AND 2 columns)
+	 * This happens when an item matches both tall and wide patterns - rare!
+	 */
+	function isBigItem(index: number): boolean {
+		return isTallItem(index) && isWideItem(index);
+	}
+
+	// ============================================================================
+	// END MASONRY PATTERN SYSTEM
+	// ============================================================================
+
 	function getImageClass(index: number): string {
-		// Only use tall images for grid layout (not columns) on tablet+
-		if (!useColumnsLayout && isTallItem(index)) {
-			return 'tall';
+		// Only use special images for grid layout (not columns) on tablet+
+		if (!useColumnsLayout) {
+			if (isBigItem(index)) {
+				return 'big';
+			}
+			if (isTallItem(index)) {
+				return 'tall';
+			}
+			if (isWideItem(index)) {
+				return 'wide';
+			}
 		}
 		return 'thumbnail';
 	}
@@ -33,7 +137,7 @@
 			<div
 				class="photo-item group relative mb-4 overflow-hidden rounded shadow-[0_1px_3px_rgba(0,0,0,0.3)] transition-[box-shadow,transform] duration-200 ease-in hover:shadow-[0_4px_12px_rgba(0,0,0,0.5)] hover:-translate-y-0.5 {useColumnsLayout
 					? 'break-inside-avoid'
-					: ''}"
+					: ''} {!useColumnsLayout && isBigItem(index) ? 'big-item' : !useColumnsLayout && isTallItem(index) ? 'tall-item' : !useColumnsLayout && isWideItem(index) ? 'wide-item' : ''}"
 			>
 				<!-- Pulsing placeholder -->
 				<div class="absolute inset-0 animate-pulse bg-gray-700/50"></div>
@@ -91,10 +195,20 @@
 			grid-auto-rows: 350px;
 		}
 
-		/* Masonry pattern for tablet+ */
-		.grid-layout .photo-item:nth-child(13n + 5),
-		.grid-layout .photo-item:nth-child(19n + 11) {
+		/* Tall items span 2 rows */
+		.grid-layout .tall-item {
 			grid-row: span 2;
+		}
+
+		/* Wide items span 2 columns */
+		.grid-layout .wide-item {
+			grid-column: span 2;
+		}
+
+		/* Big items span 2 rows AND 2 columns */
+		.grid-layout .big-item {
+			grid-row: span 2;
+			grid-column: span 2;
 		}
 	}
 
@@ -105,10 +219,20 @@
 			grid-auto-rows: 400px;
 		}
 
-		/* Masonry pattern for desktop */
-		.grid-layout .photo-item:nth-child(13n + 5),
-		.grid-layout .photo-item:nth-child(19n + 11) {
+		/* Tall items span 2 rows */
+		.grid-layout .tall-item {
 			grid-row: span 2;
+		}
+
+		/* Wide items span 2 columns */
+		.grid-layout .wide-item {
+			grid-column: span 2;
+		}
+
+		/* Big items span 2 rows AND 2 columns */
+		.grid-layout .big-item {
+			grid-row: span 2;
+			grid-column: span 2;
 		}
 	}
 </style>

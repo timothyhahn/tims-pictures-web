@@ -176,6 +176,7 @@
 		{pictures}
 		{useColumnsLayout}
 		backLocation="album"
+		albumIdentifier={album?.slug || album?.id?.toString()}
 		onPhotoClick={handlePhotoClick}
 	/>
 

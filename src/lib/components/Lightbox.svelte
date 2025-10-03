@@ -226,12 +226,11 @@
 
 	<!-- Main image -->
 	<div class="group relative max-h-screen max-w-screen-2xl p-4">
-		{#key picture.id}
+		{#key `${picture.id}-${Date.now()}`}
 			<img
 				src="{picture.image_url}?class=fullscreen"
 				alt={picture.description || 'Photo'}
-				class="max-h-screen max-w-full object-contain transition-all duration-300"
-				class:opacity-0={!imageLoaded}
+				class="max-h-screen max-w-full object-contain opacity-0 transition-all duration-300"
 				class:opacity-100={imageLoaded}
 				class:slide-from-left={animationDirection === 'left'}
 				class:slide-from-right={animationDirection === 'right'}
@@ -474,7 +473,7 @@
 			opacity: 1;
 		}
 		to {
-			transform: translateX(-100%);
+			transform: translateX(-50%);
 			opacity: 0;
 		}
 	}
@@ -485,7 +484,7 @@
 			opacity: 1;
 		}
 		to {
-			transform: translateX(100%);
+			transform: translateX(50%);
 			opacity: 0;
 		}
 	}
