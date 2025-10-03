@@ -7,44 +7,43 @@
 
 	let { data }: { data: PageData } = $props();
 
-	let picture = $state<any>(null);
-	let albumSlug = $state('');
-	let albumName = $state('');
-	let allPictures = $state<any[]>([]);
-	let currentIndex = $state(-1);
+	let albumData = $state<any>(null);
 
 	// Get the 'back' query param, default to 'album'
 	let backLocation = $derived($page.url.searchParams.get('back') || 'album');
 
-	// Load picture and album data from promises
-	$effect(() => {
-		data.picture.then((loadedPicture) => {
-			picture = loadedPicture;
-		});
+	// Derive OpenGraph URL from page store without query params
+	let ogUrl = $derived($page.url.origin + $page.url.pathname);
 
-		data.albumData.then((loadedAlbumData) => {
-			albumSlug = loadedAlbumData.albumSlug;
-			albumName = loadedAlbumData.albumName;
-			allPictures = loadedAlbumData.allPictures;
-			currentIndex = loadedAlbumData.currentIndex;
-		});
+	// Picture is loaded directly
+	let picture = $derived(data.picture);
+
+	// Load album data from promise
+	$effect(() => {
+		data.albumData
+			.then((albumDat) => {
+				albumData = albumDat;
+			})
+			.catch(() => {
+				// Errors will be caught by SvelteKit
+			});
 	});
 
-	function handleNext() {
+	function handleNext(allPictures: any[], currentIndex: number) {
 		if (currentIndex < allPictures.length - 1) {
 			const nextPicture = allPictures[currentIndex + 1];
 			goto(`/pictures/${nextPicture.id}?back=${backLocation}`);
 		}
 	}
 
-	function handlePrevious() {
+	function handlePrevious(allPictures: any[], currentIndex: number) {
 		if (currentIndex > 0) {
 			const prevPicture = allPictures[currentIndex - 1];
 			goto(`/pictures/${prevPicture.id}?back=${backLocation}`);
 		}
 	}
 
-	function handleClose() {
+	function handleClose(albumSlug: string) {
 		if (backLocation === 'home') {
 			goto('/');
 		} else {
@@ -54,16 +53,25 @@
 </script>
 
 <svelte:head>
-	<title>{albumName} - {picture?.description || 'Photo'} - Tim's Pictures</title>
+	<title>{picture?.description || 'Photo'} - Tim's Pictures</title>
+	<meta property="og:title" content="Tim's Pictures" />
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content={ogUrl} />
+	{#if picture?.image_url}
+		<meta property="og:image" content={picture.image_url} />
+	{/if}
+	{#if picture?.description}
+		<meta property="og:description" content={picture.description} />
+	{/if}
 </svelte:head>
 
-{#if picture}
+{#if picture && albumData}
 	<Lightbox
 		{picture}
-		{albumSlug}
-		onNext={backLocation === 'home' ? undefined : currentIndex < allPictures.length - 1 ? handleNext : undefined}
-		onPrevious={backLocation === 'home' ? undefined : currentIndex > 0 ? handlePrevious : undefined}
-		onClose={handleClose}
+		albumSlug={albumData.albumSlug}
+		onNext={backLocation === 'home' ? undefined : albumData.currentIndex < albumData.allPictures.length - 1 ? () => handleNext(albumData.allPictures, albumData.currentIndex) : undefined}
+		onPrevious={backLocation === 'home' ? undefined : albumData.currentIndex > 0 ? () => handlePrevious(albumData.allPictures, albumData.currentIndex) : undefined}
+		onClose={() => handleClose(albumData.albumSlug)}
 	/>
 {:else}
 	<div class="flex h-screen items-center justify-center">

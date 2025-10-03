@@ -21,35 +21,24 @@ export const load: PageLoad = async ({ params, fetch }) => {
 		}
 	}
 
-	// Fetch the picture first
-	const picturePromise = fetch(`/api/v1/pictures/${params.id}`)
+	// Fetch the picture first - AWAIT for OpenGraph tags
+	const picture = await fetch(`/api/v1/pictures/${params.id}`)
 		.then((response) => {
 			if (!response.ok) {
 				throw error(404, 'Picture not found');
 			}
 			return response.json();
-		})
-		.catch((err) => {
-			console.error('Failed to load picture:', err);
-			throw err;
 		});
 
-	// After getting the picture, fetch album metadata and use cached pictures if available
-	const albumDataPromise = picturePromise.then((picture) => {
-		// Fetch album metadata
-		const albumPromise = fetch(`/api/v1/albums/${picture.album_id}`)
-			.then((response) => {
-				if (!response.ok) {
-					throw error(500, 'Failed to load album');
-				}
-				return response.json();
-			})
-			.catch((err) => {
-				console.error('Failed to load album:', err);
-				throw err;
-			});
-
-		return albumPromise.then((album) => {
+	// After getting the picture, fetch album metadata - stream this
+	const albumDataPromise = fetch(`/api/v1/albums/${picture.album_id}`)
+		.then((response) => {
+			if (!response.ok) {
+				throw error(500, 'Failed to load album');
+			}
+			return response.json();
+		})
+		.then((album) => {
 			// If we have cached state for this album, use it for navigation
 			if (cachedNavState && cachedNavState.albumId === picture.album_id) {
 				const currentIndex = cachedNavState.pictures.findIndex((p: Picture) => p.id === params.id);
@@ -69,10 +58,9 @@ export const load: PageLoad = async ({ params, fetch }) => {
 				currentIndex: -1
 			};
 		});
-	});
 
 	return {
-		picture: picturePromise,
+		picture,
 		albumData: albumDataPromise
 	};
 };

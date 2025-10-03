@@ -4,11 +4,11 @@
 	import ScrollToTopButton from '$lib/components/ScrollToTopButton.svelte';
 	import type { PageData } from './$types';
 	import type { Picture } from '$lib/api/types';
+	import { page as pageStore } from '$app/stores';
 
 	let { data }: { data: PageData } = $props();
 
 	let pictures = $state<Picture[]>([]);
-	let album = $state<any>(null);
 	let totalPictures = $state(0);
 	let y = $state(0);
 	let page = $state(1);
@@ -18,46 +18,55 @@
 
 	const PER_PAGE = 50;
 
-	// Load album and pictures from promises
+	// Derive OpenGraph URL from page store without query params
+	let ogUrl = $derived($pageStore.url.origin + $pageStore.url.pathname);
+
+	// Album is loaded directly
+	let album = $derived(data.album);
+
+	// Load pictures from promise
 	$effect(() => {
 		if (!initialLoad) {
-			Promise.all([data.album, data.picturesData]).then(
-				([loadedAlbum, { pictures: loadedPictures, totalPictures: total }]) => {
-					album = loadedAlbum;
-					pictures = loadedPictures;
-					totalPictures = total;
-					initialLoad = true;
+			data.picturesData
+				.then(
+					({ pictures: loadedPictures, totalPictures: total }) => {
+						pictures = loadedPictures;
+						totalPictures = total;
+						initialLoad = true;
 
-					// Check if we got less than a full page, meaning we're done
-					if (loadedPictures.length < PER_PAGE) {
-						done = true;
-					}
+						// Check if we got less than a full page, meaning we're done
+						if (loadedPictures.length < PER_PAGE) {
+							done = true;
+						}
 
-					// Check for saved state after both album and pictures load
-					const savedState = sessionStorage.getItem('albumState');
-					if (savedState) {
-						try {
-							const state = JSON.parse(savedState);
-							// Check if data is fresh (less than 5 minutes old) and same album
-							if (
-								Date.now() - state.timestamp < 5 * 60 * 1000 &&
-								state.albumId === loadedAlbum.id
-							) {
-								pictures = state.pictures;
-								page = state.page;
-								done = state.done;
+						// Check for saved state after both album and pictures load
+						const savedState = sessionStorage.getItem('albumState');
+						if (savedState) {
+							try {
+								const state = JSON.parse(savedState);
+								// Check if data is fresh (less than 5 minutes old) and same album
+								if (
+									Date.now() - state.timestamp < 5 * 60 * 1000 &&
+									state.albumId === album.id
+								) {
+									pictures = state.pictures;
+									page = state.page;
+									done = state.done;
 
-								setTimeout(() => {
-									window.scrollTo(0, state.scrollY);
-								}, 0);
+									setTimeout(() => {
+										window.scrollTo(0, state.scrollY);
+									}, 0);
+								}
+								sessionStorage.removeItem('albumState');
+							} catch {
+								sessionStorage.removeItem('albumState');
 							}
-							sessionStorage.removeItem('albumState');
-						} catch {
-							sessionStorage.removeItem('albumState');
 						}
 					}
-				}
-			);
+				)
+				.catch(() => {
+					// Errors will be caught by the {#await} block
+				});
 		}
 	});
 
@@ -102,31 +111,51 @@
 		}
 	});
 
-	function handlePhotoClick(picture: Picture) {
-		// Save state for returning to album
-		const albumState = {
-			pictures,
-			albumId: album?.id,
-			page,
-			done,
-			scrollY: y,
-			timestamp: Date.now()
-		};
-		sessionStorage.setItem('albumState', JSON.stringify(albumState));
+	function handlePhotoClick(event: MouseEvent, picture: Picture) {
+		// Only prevent default for left clicks (not right-click or cmd+click)
+		if (event.button === 0 && !event.ctrlKey && !event.metaKey) {
+			event.preventDefault();
 
-		// Save pictures for navigation in lightbox
-		const navState = {
-			pictures,
-			albumId: album?.id,
-			timestamp: Date.now()
-		};
-		sessionStorage.setItem('pictureNavState', JSON.stringify(navState));
+			// Save state for returning to album
+			const albumState = {
+				pictures,
+				albumId: album?.id,
+				page,
+				done,
+				scrollY: y,
+				timestamp: Date.now()
+			};
+			sessionStorage.setItem('albumState', JSON.stringify(albumState));
 
-		goto(`/pictures/${picture.id}?back=album`);
+			// Save pictures for navigation in lightbox
+			const navState = {
+				pictures,
+				albumId: album?.id,
+				timestamp: Date.now()
+			};
+			sessionStorage.setItem('pictureNavState', JSON.stringify(navState));
+
+			goto(`/pictures/${picture.id}?back=album`);
+		}
 	}
 </script>
 
 <svelte:window bind:scrollY={y} />
+
+<svelte:head>
+	{#if album}
+		<title>{album.name} - Tim's Pictures</title>
+		<meta property="og:title" content={album.name} />
+		<meta property="og:type" content="website" />
+		<meta property="og:url" content={ogUrl} />
+		{#if album.cover_picture_url}
+			<meta property="og:image" content={album.cover_picture_url} />
+		{/if}
+		{#if album.description}
+			<meta property="og:description" content={album.description} />
+		{/if}
+	{/if}
+</svelte:head>
 
 <div class="container mx-auto p-6">
 	<!-- Album Header -->
@@ -152,13 +181,17 @@
 		<div class="columns-1 gap-4 sm:columns-2 lg:columns-3 xl:columns-4">
 			{#each pictures as picture (picture.id)}
 				<div class="group mb-4 break-inside-avoid overflow-hidden rounded-lg">
-					<img
-						src="{picture.image_url}?class=thumbnail"
-						alt={picture.description || 'Photo'}
-						class="w-full cursor-pointer transition-transform duration-300 group-hover:scale-105"
-						loading="lazy"
-						onclick={() => handlePhotoClick(picture)}
-					/>
+					<a
+						href="/pictures/{picture.id}?back=album"
+						onclick={(e) => handlePhotoClick(e, picture)}
+					>
+						<img
+							src="{picture.image_url}?class=thumbnail"
+							alt={picture.description || 'Photo'}
+							class="w-full cursor-pointer transition-transform duration-300 group-hover:scale-105"
+							loading="lazy"
+						/>
+					</a>
 				</div>
 			{/each}
 		</div>

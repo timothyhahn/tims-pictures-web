@@ -45,6 +45,7 @@
 	},
 	"dependencies": {
 		"@fontsource/raleway": "^5.2.8",
-		"@sveltejs/adapter-node": "^5.3.3"
+		"@sveltejs/adapter-node": "^5.3.3",
+		"sveltekit-rate-limiter": "^0.7.0"
 	}
 }
