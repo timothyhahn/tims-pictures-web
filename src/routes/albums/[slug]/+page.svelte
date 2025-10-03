@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import ScrollToTopButton from '$lib/components/ScrollToTopButton.svelte';
+	import AlbumHeader from '$lib/components/AlbumHeader.svelte';
+	import MasonryPhotoGrid from '$lib/components/MasonryPhotoGrid.svelte';
+	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import { saveAlbumState, loadAlbumState, savePictureNavState } from '$lib/utils/navigationState';
 	import type { PageData } from './$types';
 	import type { Picture } from '$lib/api/types';
 	import { page as pageStore } from '$app/stores';
@@ -41,24 +45,15 @@
 					}
 
 					// Check for saved state after both album and pictures load
-					const savedState = sessionStorage.getItem('albumState');
+					const savedState = loadAlbumState(album.id);
 					if (savedState) {
-						try {
-							const state = JSON.parse(savedState);
-							// Check if data is fresh (less than 5 minutes old) and same album
-							if (Date.now() - state.timestamp < 5 * 60 * 1000 && state.albumId === album.id) {
-								pictures = state.pictures;
-								page = state.page;
-								done = state.done;
+						pictures = savedState.pictures;
+						page = savedState.page;
+						done = savedState.done;
 
-								setTimeout(() => {
-									window.scrollTo(0, state.scrollY);
-								}, 0);
-							}
-							sessionStorage.removeItem('albumState');
-						} catch {
-							sessionStorage.removeItem('albumState');
-						}
+						setTimeout(() => {
+							window.scrollTo(0, savedState.scrollY);
+						}, 0);
 					}
 				})
 				.catch(() => {
@@ -149,23 +144,10 @@
 			event.preventDefault();
 
 			// Save state for returning to album
-			const albumState = {
-				pictures,
-				albumId: album?.id,
-				page,
-				done,
-				scrollY: y,
-				timestamp: Date.now()
-			};
-			sessionStorage.setItem('albumState', JSON.stringify(albumState));
+			saveAlbumState(pictures, album?.id, page, done, y);
 
 			// Save pictures for navigation in lightbox
-			const navState = {
-				pictures,
-				albumId: album?.id,
-				timestamp: Date.now()
-			};
-			sessionStorage.setItem('pictureNavState', JSON.stringify(navState));
+			savePictureNavState(pictures, album?.id);
 
 			goto(`/pictures/${picture.id}?back=album`);
 		}
@@ -188,113 +170,16 @@
 </svelte:head>
 
 <div class="container mx-auto p-6">
-	<!-- Album Header -->
-	{#if album}
-		<div class="mb-8">
-			<h1 class="mb-2 text-6xl font-extralight">{album.name}</h1>
-			{#if album.description}
-				<p class="text-lg text-gray-400">{album.description}</p>
-			{/if}
-			<p class="mt-2 text-sm text-gray-500">
-				{totalPictures}
-				{totalPictures === 1 ? 'photo' : 'photos'}
-			</p>
-		</div>
-	{:else}
-		<div class="mb-8">
-			<div class="h-10 w-64 animate-pulse rounded bg-gray-700"></div>
-		</div>
-	{/if}
+	<AlbumHeader {album} {totalPictures} loading={!album} />
 
-	<!-- Photo layout - columns for small albums, grid for large albums -->
-	{#if pictures.length > 0}
-		<div class={useColumnsLayout ? 'columns-1 gap-4 sm:columns-2 xl:columns-3' : 'grid-layout'}>
-			{#each pictures as picture (picture.id)}
-				<div class="photo-item group mb-4 overflow-hidden rounded shadow-[0_1px_3px_rgba(0,0,0,0.3)] transition-[box-shadow,transform] duration-200 ease-in hover:shadow-[0_4px_12px_rgba(0,0,0,0.5)] hover:-translate-y-0.5 {useColumnsLayout ? 'break-inside-avoid' : ''}">
-					<a
-						href="/pictures/{picture.id}?back=album"
-						onclick={(e) => handlePhotoClick(e, picture)}
-						data-sveltekit-preload-data="off"
-					>
-						<img
-							src="{picture.image_url}?class=thumbnail"
-							alt={picture.description || 'Photo'}
-							class="w-full cursor-pointer {useColumnsLayout ? '' : 'h-full object-cover'}"
-							loading="lazy"
-						/>
-					</a>
-				</div>
-			{/each}
-		</div>
-	{:else if album}
-		<div class="py-16 text-center">
-			<p class="text-xl text-gray-400">Loading pictures...</p>
-		</div>
-	{/if}
+	<MasonryPhotoGrid
+		{pictures}
+		{useColumnsLayout}
+		backLocation="album"
+		onPhotoClick={handlePhotoClick}
+	/>
 
-	<!-- Loading indicator for infinite scroll -->
-	{#if loading && pictures.length > 0}
-		<div class="flex justify-center py-8">
-			<div class="flex space-x-2">
-				<div class="h-3 w-3 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.3s]"></div>
-				<div class="h-3 w-3 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.15s]"></div>
-				<div class="h-3 w-3 animate-bounce rounded-full bg-gray-400"></div>
-			</div>
-		</div>
-	{/if}
+	<LoadingSpinner show={loading && pictures.length > 0} />
 </div>
 
 <ScrollToTopButton show={y > 300} {scrollToTop} />
-
-<style>
-	/* Grid layout with faux masonry - complex repeating pattern */
-	.grid-layout {
-		display: grid;
-		gap: 1rem;
-		grid-auto-flow: dense;
-	}
-
-	.grid-layout .photo-item {
-		height: 100%;
-	}
-
-	/* Mobile: single column, natural aspect ratio (no masonry) */
-	@media (max-width: 639px) {
-		.grid-layout {
-			grid-template-columns: 1fr;
-			grid-auto-rows: auto;
-		}
-
-		.grid-layout .photo-item {
-			height: auto;
-		}
-	}
-
-	/* Tablet: 2-3 columns with masonry */
-	@media (min-width: 640px) and (max-width: 1023px) {
-		.grid-layout {
-			grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-			grid-auto-rows: 350px;
-		}
-
-		/* Masonry pattern for tablet+ */
-		.grid-layout .photo-item:nth-child(13n + 5),
-		.grid-layout .photo-item:nth-child(19n + 11) {
-			grid-row: span 2;
-		}
-	}
-
-	/* Desktop: 3 columns with masonry */
-	@media (min-width: 1024px) {
-		.grid-layout {
-			grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
-			grid-auto-rows: 400px;
-		}
-
-		/* Masonry pattern for desktop */
-		.grid-layout .photo-item:nth-child(13n + 5),
-		.grid-layout .photo-item:nth-child(19n + 11) {
-			grid-row: span 2;
-		}
-	}
-</style>

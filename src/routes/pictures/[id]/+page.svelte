@@ -69,6 +69,7 @@
 	<Lightbox
 		{picture}
 		albumSlug={albumData.albumSlug}
+		{backLocation}
 		onNext={backLocation === 'home'
 			? undefined
 			: albumData.currentIndex < albumData.allPictures.length - 1

@@ -5,9 +5,21 @@
 
 @theme {
 	--font-family-sans: 'Raleway', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+
+	/* Custom cyan/green-leaning grays */
+	--color-gray-50: #f8fafa;
+	--color-gray-100: #ecf1f0;
+	--color-gray-200: #d9e3e1;
+	--color-gray-300: #b3c5c2;
+	--color-gray-400: #8da8a3;
+	--color-gray-500: #678a84;
+	--color-gray-600: #526e6a;
+	--color-gray-700: #3d5350;
+	--color-gray-800: #203533;
+	--color-gray-900: #182623;
+	--color-gray-950: #0f1716;
 }
 
-/* Clean photography site theme */
 :root {
 	--color-bg: #17211f;
 	--color-surface: #1a1a1a;

@@ -3,6 +3,7 @@
 	import { onMount } from 'svelte';
 	import PhotoGrid from '$lib/components/PhotoGrid.svelte';
 	import ScrollToTopButton from '$lib/components/ScrollToTopButton.svelte';
+	import { saveHomeState, loadHomeState } from '$lib/utils/navigationState';
 	import type { Picture } from '$lib/api/types';
 	import type { PageData } from './$types';
 
@@ -21,26 +22,17 @@
 	const PER_PAGE = 12;
 
 	onMount(() => {
-		const savedState = sessionStorage.getItem('homeState');
+		const savedState = loadHomeState();
 		if (savedState) {
-			try {
-				const state = JSON.parse(savedState);
-				// Check if data is fresh (less than 5 minutes old)
-				if (Date.now() - state.timestamp < 5 * 60 * 1000) {
-					pictures = state.pictures;
-					page = state.page;
-					done = state.done;
-					restoredFromCache = true;
-					initialPicturesLoaded = true;
+			pictures = savedState.pictures;
+			page = savedState.page;
+			done = savedState.done;
+			restoredFromCache = true;
+			initialPicturesLoaded = true;
 
-					setTimeout(() => {
-						window.scrollTo(0, state.scrollY);
-					}, 0);
-				}
-				sessionStorage.removeItem('homeState');
-			} catch {
-				sessionStorage.removeItem('homeState');
-			}
+			setTimeout(() => {
+				window.scrollTo(0, savedState.scrollY);
+			}, 0);
 		}
 	});
 
@@ -56,14 +48,7 @@
 
 	function handlePhotoClick(picture: Picture) {
 		// Save state for returning to home
-		const homeState = {
-			pictures,
-			page,
-			done,
-			scrollY: y,
-			timestamp: Date.now()
-		};
-		sessionStorage.setItem('homeState', JSON.stringify(homeState));
+		saveHomeState(pictures, page, done, y);
 
 		// For home page, we don't save pictureNavState since pictures are from different albums
 		// Navigation will use the API data instead

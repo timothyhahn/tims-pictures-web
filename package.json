@@ -47,6 +47,7 @@
 		"@fontsource/raleway": "^5.2.8",
 		"@sentry/sveltekit": "^10.17.0",
 		"@sveltejs/adapter-node": "^5.3.3",
+		"lucide-svelte": "^0.544.0",
 		"sveltekit-rate-limiter": "^0.7.0"
 	}
 }

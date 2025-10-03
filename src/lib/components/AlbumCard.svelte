@@ -19,11 +19,14 @@
 >
 	<!-- Cover Image or Placeholder -->
 	{#if album.cover_picture_url}
-		<div class="aspect-video w-full overflow-hidden bg-gray-900">
+		<div class="relative aspect-video w-full overflow-hidden bg-gray-900">
+			<!-- Pulsing placeholder -->
+			<div class="absolute inset-0 animate-pulse bg-gray-700/50"></div>
+
 			<img
 				src="{album.cover_picture_url}?class=thumbnail"
 				alt="{album.name} cover"
-				class="image-fade-in h-full w-full object-cover"
+				class="image-fade-in relative h-full w-full object-cover"
 				loading="lazy"
 				onload={handleImageLoad}
 			/>

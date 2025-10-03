@@ -1,22 +1,31 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
+	import { Info, Download, Share2, Album, X, ChevronLeft, ChevronRight, Link } from 'lucide-svelte';
 	import type { Picture } from '$lib/api/types';
 	import { formatMetadata } from '$lib/utils/metadata';
 
 	interface Props {
 		picture: Picture;
 		albumSlug?: string;
+		backLocation?: string;
 		onNext?: () => void;
 		onPrevious?: () => void;
 		onClose?: () => void;
 	}
 
-	let { picture, albumSlug, onNext, onPrevious, onClose }: Props = $props();
+	let { picture, albumSlug, backLocation = 'album', onNext, onPrevious, onClose }: Props = $props();
 
 	let showInfo = $state(false);
 	let showControls = $state(true);
 	let hideControlsTimeout: ReturnType<typeof setTimeout> | null = null;
 	let imageLoaded = $state(false);
+	let showShareMenu = $state(false);
+	let animationDirection = $state<'left' | 'right' | null>(null);
+	let outgoingDirection = $state<'left' | 'right' | null>(null);
+	let isAnimating = $state(false);
+	let touchStartX = $state(0);
+	let touchStartY = $state(0);
 
 	let formattedMetadata = $derived(
 		picture.metadata && typeof picture.metadata === 'object'
@@ -24,24 +33,89 @@
 			: []
 	);
 
+	// Check for animation direction on mount and picture change
+	onMount(() => {
+		const direction = sessionStorage.getItem('lightboxDirection') as 'left' | 'right' | null;
+		if (direction) {
+			animationDirection = direction;
+		}
+	});
+
 	// Reset loading state when picture changes
 	$effect(() => {
 		// Access picture.id to make this effect reactive to picture changes
 		void picture.id;
 		imageLoaded = false;
+
+		// Check for animation direction from session storage
+		const direction = sessionStorage.getItem('lightboxDirection') as 'left' | 'right' | null;
+		if (direction) {
+			animationDirection = direction;
+		}
 	});
 
 	function toggleInfo() {
 		showInfo = !showInfo;
+		showShareMenu = false;
+	}
+
+	function toggleShareMenu() {
+		showShareMenu = !showShareMenu;
+		showInfo = false;
+	}
+
+	async function copyLinkToClipboard() {
+		const url = `${window.location.origin}/pictures/${picture.id}`;
+		try {
+			await navigator.clipboard.writeText(url);
+			showShareMenu = false;
+		} catch (err) {
+			console.error('Failed to copy link:', err);
+		}
+	}
+
+	function goToAlbum() {
+		if (albumSlug) {
+			// Clear direction before navigating
+			sessionStorage.removeItem('lightboxDirection');
+			goto(`/albums/${albumSlug}`);
+		}
 	}
 
 	function handleClose() {
+		// Clear direction before closing
+		sessionStorage.removeItem('lightboxDirection');
+
 		if (onClose) {
 			onClose();
 		} else if (albumSlug) {
 			goto(`/albums/${albumSlug}`);
 		} else {
 			goto('/');
+		}
+	}
+
+	function handleNextWithAnimation() {
+		if (onNext && !isAnimating) {
+			isAnimating = true;
+			// Current image slides out to the left, new image slides in from right
+			outgoingDirection = 'left';
+			sessionStorage.setItem('lightboxDirection', 'right');
+			setTimeout(() => {
+				onNext();
+			}, 150);
+		}
+	}
+
+	function handlePreviousWithAnimation() {
+		if (onPrevious && !isAnimating) {
+			isAnimating = true;
+			// Current image slides out to the right, new image slides in from left
+			outgoingDirection = 'right';
+			sessionStorage.setItem('lightboxDirection', 'left');
+			setTimeout(() => {
+				onPrevious();
+			}, 150);
 		}
 	}
 
@@ -91,11 +165,39 @@
 		if (e.key === 'Escape') {
 			handleClose();
 		} else if (e.key === 'ArrowRight' && onNext) {
-			onNext();
+			handleNextWithAnimation();
 		} else if (e.key === 'ArrowLeft' && onPrevious) {
-			onPrevious();
+			handlePreviousWithAnimation();
 		} else if (e.key === 'i' || e.key === 'I') {
 			toggleInfo();
+		}
+	}
+
+	function handleTouchStart(e: TouchEvent) {
+		touchStartX = e.touches[0].clientX;
+		touchStartY = e.touches[0].clientY;
+	}
+
+	function handleTouchEnd(e: TouchEvent) {
+		const touchEndX = e.changedTouches[0].clientX;
+		const touchEndY = e.changedTouches[0].clientY;
+
+		const deltaX = touchEndX - touchStartX;
+		const deltaY = touchEndY - touchStartY;
+
+		// Calculate threshold as 20% of viewport width
+		const swipeThreshold = window.innerWidth * 0.2;
+
+		// Only trigger if horizontal swipe is more significant than vertical
+		// and exceeds minimum threshold (20% of screen width)
+		if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > swipeThreshold) {
+			if (deltaX > 0 && onPrevious) {
+				// Swipe right -> go to previous
+				handlePreviousWithAnimation();
+			} else if (deltaX < 0 && onNext) {
+				// Swipe left -> go to next
+				handleNextWithAnimation();
+			}
 		}
 	}
 
@@ -115,6 +217,8 @@
 <div
 	class="fixed inset-0 z-50 flex items-center justify-center"
 	style="background-color: var(--color-bg);"
+	ontouchstart={handleTouchStart}
+	ontouchend={handleTouchEnd}
 >
 	<!-- Background click to close -->
 	<button onclick={handleClose} class="absolute inset-0 cursor-default" aria-label="Close lightbox"
@@ -126,11 +230,19 @@
 			<img
 				src="{picture.image_url}?class=fullscreen"
 				alt={picture.description || 'Photo'}
-				class="max-h-screen max-w-full object-contain transition-opacity duration-200"
+				class="max-h-screen max-w-full object-contain transition-all duration-300"
 				class:opacity-0={!imageLoaded}
 				class:opacity-100={imageLoaded}
+				class:slide-from-left={animationDirection === 'left'}
+				class:slide-from-right={animationDirection === 'right'}
+				class:slide-to-left={outgoingDirection === 'left'}
+				class:slide-to-right={outgoingDirection === 'right'}
 				onload={() => {
 					imageLoaded = true;
+					isAnimating = false;
+					animationDirection = null;
+					outgoingDirection = null;
+					sessionStorage.removeItem('lightboxDirection');
 				}}
 			/>
 		{/key}
@@ -162,17 +274,15 @@
 			<div class="absolute top-0 right-0 left-0 bg-gradient-to-b from-black/50 to-transparent p-4">
 				<button
 					onclick={handleClose}
-					class="pointer-events-auto cursor-pointer rounded-lg p-2 text-white transition-colors hover:bg-white/20"
+					class="pointer-events-auto group/tooltip relative cursor-pointer rounded-lg p-2 text-white transition-colors hover:bg-white/20"
 					aria-label="Close"
 				>
-					<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M6 18L18 6M6 6l12 12"
-						/>
-					</svg>
+					<X class="h-6 w-6" />
+					<span
+						class="pointer-events-none absolute top-full right-0 mt-2 whitespace-nowrap rounded bg-black/90 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100"
+					>
+						Close (Esc)
+					</span>
 				</button>
 			</div>
 
@@ -180,18 +290,16 @@
 			{#if onPrevious}
 				<div class="absolute top-0 bottom-0 left-0 flex items-center p-4">
 					<button
-						onclick={onPrevious}
-						class="pointer-events-auto cursor-pointer rounded-lg p-3 text-white transition-colors hover:bg-white/20"
+						onclick={handlePreviousWithAnimation}
+						class="pointer-events-auto group/tooltip relative cursor-pointer rounded-lg p-3 text-white transition-colors hover:bg-white/20"
 						aria-label="Previous photo"
 					>
-						<svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M15 19l-7-7 7-7"
-							/>
-						</svg>
+						<ChevronLeft class="h-8 w-8" />
+						<span
+							class="pointer-events-none absolute top-1/2 left-full ml-2 -translate-y-1/2 whitespace-nowrap rounded bg-black/90 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100"
+						>
+							Previous (←)
+						</span>
 					</button>
 				</div>
 			{/if}
@@ -200,18 +308,16 @@
 			{#if onNext}
 				<div class="absolute top-0 right-0 bottom-0 flex items-center p-4">
 					<button
-						onclick={onNext}
-						class="pointer-events-auto cursor-pointer rounded-lg p-3 text-white transition-colors hover:bg-white/20"
+						onclick={handleNextWithAnimation}
+						class="pointer-events-auto group/tooltip relative cursor-pointer rounded-lg p-3 text-white transition-colors hover:bg-white/20"
 						aria-label="Next photo"
 					>
-						<svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M9 5l7 7-7 7"
-							/>
-						</svg>
+						<ChevronRight class="h-8 w-8" />
+						<span
+							class="pointer-events-none absolute top-1/2 right-full mr-2 -translate-y-1/2 whitespace-nowrap rounded bg-black/90 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100"
+						>
+							Next (→)
+						</span>
 					</button>
 				</div>
 			{/if}
@@ -220,31 +326,72 @@
 			<div class="absolute bottom-0 left-0 flex gap-2 p-4">
 				<button
 					onclick={toggleInfo}
-					class="pointer-events-auto cursor-pointer rounded-lg p-2 text-white transition-colors hover:bg-white/20"
+					class="pointer-events-auto group/tooltip relative cursor-pointer rounded-lg p-2 text-white transition-colors hover:bg-white/20"
 					aria-label="Toggle info"
 				>
-					<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-						/>
-					</svg>
+					<Info class="h-6 w-6" />
+					<span
+						class="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded bg-black/90 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100"
+					>
+						Info (I)
+					</span>
 				</button>
+
+				{#if backLocation === 'home' && albumSlug}
+					<button
+						onclick={goToAlbum}
+						class="pointer-events-auto group/tooltip relative cursor-pointer rounded-lg p-2 text-white transition-colors hover:bg-white/20"
+						aria-label="Go to album"
+					>
+						<Album class="h-6 w-6" />
+						<span
+							class="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded bg-black/90 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100"
+						>
+							View Album
+						</span>
+					</button>
+				{/if}
+
+				<div class="relative">
+					<button
+						onclick={toggleShareMenu}
+						class="pointer-events-auto group/tooltip relative cursor-pointer rounded-lg p-2 text-white transition-colors hover:bg-white/20"
+						aria-label="Share"
+					>
+						<Share2 class="h-6 w-6" />
+						<span
+							class="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded bg-black/90 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100"
+						>
+							Share
+						</span>
+					</button>
+
+					{#if showShareMenu}
+						<div
+							class="pointer-events-auto absolute bottom-full left-0 mb-2 rounded-lg bg-gray-900/95 p-2 shadow-lg backdrop-blur-sm"
+						>
+							<button
+								onclick={copyLinkToClipboard}
+								class="flex items-center gap-2 whitespace-nowrap rounded px-3 py-2 text-sm text-white transition-colors hover:bg-white/10"
+							>
+								<Link class="h-4 w-4" />
+								Copy Link
+							</button>
+						</div>
+					{/if}
+				</div>
+
 				<button
 					onclick={handleDownload}
-					class="pointer-events-auto cursor-pointer rounded-lg p-2 text-white transition-colors hover:bg-white/20"
+					class="pointer-events-auto group/tooltip relative cursor-pointer rounded-lg p-2 text-white transition-colors hover:bg-white/20"
 					aria-label="Download photo"
 				>
-					<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-						/>
-					</svg>
+					<Download class="h-6 w-6" />
+					<span
+						class="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded bg-black/90 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100"
+					>
+						Download
+					</span>
 				</button>
 			</div>
 		</div>
@@ -262,14 +409,7 @@
 						onclick={toggleInfo}
 						class="cursor-pointer p-1 text-gray-400 transition-colors hover:text-white"
 					>
-						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M6 18L18 6M6 6l12 12"
-							/>
-						</svg>
+						<X class="h-5 w-5" />
 					</button>
 				</div>
 
@@ -303,3 +443,66 @@
 		</div>
 	{/if}
 </div>
+
+<style>
+	/* Slide animations for image navigation */
+	@keyframes slideFromLeft {
+		from {
+			transform: translateX(-100%);
+			opacity: 0;
+		}
+		to {
+			transform: translateX(0);
+			opacity: 1;
+		}
+	}
+
+	@keyframes slideFromRight {
+		from {
+			transform: translateX(100%);
+			opacity: 0;
+		}
+		to {
+			transform: translateX(0);
+			opacity: 1;
+		}
+	}
+
+	@keyframes slideToLeft {
+		from {
+			transform: translateX(0);
+			opacity: 1;
+		}
+		to {
+			transform: translateX(-100%);
+			opacity: 0;
+		}
+	}
+
+	@keyframes slideToRight {
+		from {
+			transform: translateX(0);
+			opacity: 1;
+		}
+		to {
+			transform: translateX(100%);
+			opacity: 0;
+		}
+	}
+
+	.slide-from-left {
+		animation: slideFromLeft 0.3s ease-out;
+	}
+
+	.slide-from-right {
+		animation: slideFromRight 0.3s ease-out;
+	}
+
+	.slide-to-left {
+		animation: slideToLeft 0.3s ease-out;
+	}
+
+	.slide-to-right {
+		animation: slideToRight 0.3s ease-out;
+	}
+</style>
