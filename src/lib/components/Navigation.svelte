@@ -138,7 +138,7 @@
 						rel="noopener noreferrer"
 						class="block px-6 py-3 text-gray-400 hover:bg-white/5 hover:text-white"
 					>
-						allie.today →
+						Allie, Today →
 					</a>
 				</li>
 			</ul>

@@ -55,6 +55,38 @@
 		}, 2000);
 	}
 
+	async function handleDownload(e: MouseEvent) {
+		e.preventDefault();
+
+		// Track download event if Fathom is available
+		if (typeof window !== 'undefined' && 'fathom' in window) {
+			try {
+				(window as any).fathom.trackEvent('image downloaded', { _value: picture.id });
+			} catch (err) {
+				// Silently fail if tracking doesn't work
+				console.debug('Failed to track download event:', err);
+			}
+		}
+
+		// Fetch and download the image
+		try {
+			const response = await fetch(`${picture.image_url}?class=download`);
+			const blob = await response.blob();
+			const url = window.URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = picture.description || `photo-${picture.id}`;
+			document.body.appendChild(a);
+			a.click();
+			window.URL.revokeObjectURL(url);
+			document.body.removeChild(a);
+		} catch (err) {
+			console.error('Failed to download image:', err);
+			// Fallback: open in new tab
+			window.open(`${picture.image_url}?class=download`, '_blank');
+		}
+	}
+
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Escape') {
 			handleClose();
@@ -130,7 +162,7 @@
 			<div class="absolute top-0 right-0 left-0 bg-gradient-to-b from-black/50 to-transparent p-4">
 				<button
 					onclick={handleClose}
-					class="pointer-events-auto rounded-lg p-2 text-white transition-colors hover:bg-white/20"
+					class="pointer-events-auto cursor-pointer rounded-lg p-2 text-white transition-colors hover:bg-white/20"
 					aria-label="Close"
 				>
 					<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -149,7 +181,7 @@
 				<div class="absolute top-0 bottom-0 left-0 flex items-center p-4">
 					<button
 						onclick={onPrevious}
-						class="pointer-events-auto rounded-lg p-3 text-white transition-colors hover:bg-white/20"
+						class="pointer-events-auto cursor-pointer rounded-lg p-3 text-white transition-colors hover:bg-white/20"
 						aria-label="Previous photo"
 					>
 						<svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -169,7 +201,7 @@
 				<div class="absolute top-0 right-0 bottom-0 flex items-center p-4">
 					<button
 						onclick={onNext}
-						class="pointer-events-auto rounded-lg p-3 text-white transition-colors hover:bg-white/20"
+						class="pointer-events-auto cursor-pointer rounded-lg p-3 text-white transition-colors hover:bg-white/20"
 						aria-label="Next photo"
 					>
 						<svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -184,11 +216,11 @@
 				</div>
 			{/if}
 
-			<!-- Bottom info button -->
-			<div class="absolute bottom-0 left-0 p-4">
+			<!-- Bottom controls -->
+			<div class="absolute bottom-0 left-0 flex gap-2 p-4">
 				<button
 					onclick={toggleInfo}
-					class="pointer-events-auto rounded-lg p-2 text-white transition-colors hover:bg-white/20"
+					class="pointer-events-auto cursor-pointer rounded-lg p-2 text-white transition-colors hover:bg-white/20"
 					aria-label="Toggle info"
 				>
 					<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -197,6 +229,20 @@
 							stroke-linejoin="round"
 							stroke-width="2"
 							d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+						/>
+					</svg>
+				</button>
+				<button
+					onclick={handleDownload}
+					class="pointer-events-auto cursor-pointer rounded-lg p-2 text-white transition-colors hover:bg-white/20"
+					aria-label="Download photo"
+				>
+					<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
 						/>
 					</svg>
 				</button>
@@ -212,7 +258,7 @@
 			<div class="p-6">
 				<div class="mb-6 flex items-start justify-between">
 					<h2 class="text-xl font-bold">Photo Information</h2>
-					<button onclick={toggleInfo} class="p-1 text-gray-400 transition-colors hover:text-white">
+					<button onclick={toggleInfo} class="cursor-pointer p-1 text-gray-400 transition-colors hover:text-white">
 						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
