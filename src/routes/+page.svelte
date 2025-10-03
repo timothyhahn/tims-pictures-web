@@ -10,16 +10,8 @@
 
 	let pictures = $state<Picture[]>([]);
 	let initialPicturesLoaded = $state(false);
+	let restoredFromCache = $state(false);
 
-	// Handle initial pictures promise
-	$effect(() => {
-		if (!initialPicturesLoaded) {
-			data.pictures.then((loadedPictures) => {
-				pictures = loadedPictures;
-				initialPicturesLoaded = true;
-			});
-		}
-	});
 	let y = $state(0);
 	let page = $state(1);
 	let loading = $state(false);
@@ -38,6 +30,8 @@
 					pictures = state.pictures;
 					page = state.page;
 					done = state.done;
+					restoredFromCache = true;
+					initialPicturesLoaded = true;
 
 					setTimeout(() => {
 						window.scrollTo(0, state.scrollY);
@@ -47,6 +41,16 @@
 			} catch {
 				sessionStorage.removeItem('homeState');
 			}
+		}
+	});
+
+	// Handle initial pictures promise - only if not restored from cache
+	$effect(() => {
+		if (!initialPicturesLoaded && !restoredFromCache) {
+			data.pictures.then((loadedPictures) => {
+				pictures = loadedPictures;
+				initialPicturesLoaded = true;
+			});
 		}
 	});
 
