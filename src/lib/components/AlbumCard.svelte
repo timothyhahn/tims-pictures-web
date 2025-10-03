@@ -15,7 +15,7 @@
 
 <a
 	href="/albums/{album.slug}"
-	class="block overflow-hidden rounded bg-gray-800 shadow-[0_1px_3px_rgba(0,0,0,0.3)] transition-[box-shadow,transform] duration-200 ease-[ease] hover:shadow-[0_4px_12px_rgba(0,0,0,0.5)] hover:-translate-y-0.5"
+	class="block overflow-hidden rounded bg-gray-800 shadow-[0_1px_3px_rgba(0,0,0,0.3)] transition-[box-shadow,transform] duration-200 ease-[ease] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.5)]"
 >
 	<!-- Cover Image or Placeholder -->
 	{#if album.cover_picture_url}

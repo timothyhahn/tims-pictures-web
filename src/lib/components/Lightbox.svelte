@@ -135,7 +135,10 @@
 		// Track download event if Fathom is available
 		if (typeof window !== 'undefined' && 'fathom' in window) {
 			try {
-				(window as any).fathom.trackEvent('image downloaded', { _value: picture.id });
+				const windowWithFathom = window as typeof window & {
+					fathom: { trackEvent: (name: string, data: { _value: number }) => void };
+				};
+				windowWithFathom.fathom.trackEvent('image downloaded', { _value: picture.id });
 			} catch (err) {
 				// Silently fail if tracking doesn't work
 				console.debug('Failed to track download event:', err);
@@ -273,12 +276,12 @@
 			<div class="absolute top-0 right-0 left-0 bg-gradient-to-b from-black/50 to-transparent p-4">
 				<button
 					onclick={handleClose}
-					class="pointer-events-auto group/tooltip relative cursor-pointer rounded-lg p-2 text-white transition-colors hover:bg-white/20"
+					class="group/tooltip pointer-events-auto relative cursor-pointer rounded-lg p-2 text-white transition-colors hover:bg-white/20"
 					aria-label="Close"
 				>
 					<X class="h-6 w-6" />
 					<span
-						class="pointer-events-none absolute top-full right-0 mt-2 whitespace-nowrap rounded bg-black/90 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100"
+						class="pointer-events-none absolute top-full right-0 mt-2 rounded bg-black/90 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100"
 					>
 						Close (Esc)
 					</span>
@@ -290,12 +293,12 @@
 				<div class="absolute top-0 bottom-0 left-0 flex items-center p-4">
 					<button
 						onclick={handlePreviousWithAnimation}
-						class="pointer-events-auto group/tooltip relative cursor-pointer rounded-lg p-3 text-white transition-colors hover:bg-white/20"
+						class="group/tooltip pointer-events-auto relative cursor-pointer rounded-lg p-3 text-white transition-colors hover:bg-white/20"
 						aria-label="Previous photo"
 					>
 						<ChevronLeft class="h-8 w-8" />
 						<span
-							class="pointer-events-none absolute top-1/2 left-full ml-2 -translate-y-1/2 whitespace-nowrap rounded bg-black/90 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100"
+							class="pointer-events-none absolute top-1/2 left-full ml-2 -translate-y-1/2 rounded bg-black/90 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100"
 						>
 							Previous (←)
 						</span>
@@ -308,12 +311,12 @@
 				<div class="absolute top-0 right-0 bottom-0 flex items-center p-4">
 					<button
 						onclick={handleNextWithAnimation}
-						class="pointer-events-auto group/tooltip relative cursor-pointer rounded-lg p-3 text-white transition-colors hover:bg-white/20"
+						class="group/tooltip pointer-events-auto relative cursor-pointer rounded-lg p-3 text-white transition-colors hover:bg-white/20"
 						aria-label="Next photo"
 					>
 						<ChevronRight class="h-8 w-8" />
 						<span
-							class="pointer-events-none absolute top-1/2 right-full mr-2 -translate-y-1/2 whitespace-nowrap rounded bg-black/90 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100"
+							class="pointer-events-none absolute top-1/2 right-full mr-2 -translate-y-1/2 rounded bg-black/90 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100"
 						>
 							Next (→)
 						</span>
@@ -325,12 +328,12 @@
 			<div class="absolute bottom-0 left-0 flex gap-2 p-4">
 				<button
 					onclick={toggleInfo}
-					class="pointer-events-auto group/tooltip relative cursor-pointer rounded-lg p-2 text-white transition-colors hover:bg-white/20"
+					class="group/tooltip pointer-events-auto relative cursor-pointer rounded-lg p-2 text-white transition-colors hover:bg-white/20"
 					aria-label="Toggle info"
 				>
 					<Info class="h-6 w-6" />
 					<span
-						class="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded bg-black/90 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100"
+						class="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 rounded bg-black/90 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100"
 					>
 						Info (I)
 					</span>
@@ -339,12 +342,12 @@
 				{#if backLocation === 'home' && albumSlug}
 					<button
 						onclick={goToAlbum}
-						class="pointer-events-auto group/tooltip relative cursor-pointer rounded-lg p-2 text-white transition-colors hover:bg-white/20"
+						class="group/tooltip pointer-events-auto relative cursor-pointer rounded-lg p-2 text-white transition-colors hover:bg-white/20"
 						aria-label="Go to album"
 					>
 						<Album class="h-6 w-6" />
 						<span
-							class="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded bg-black/90 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100"
+							class="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 rounded bg-black/90 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100"
 						>
 							View Album
 						</span>
@@ -354,12 +357,12 @@
 				<div class="relative">
 					<button
 						onclick={toggleShareMenu}
-						class="pointer-events-auto group/tooltip relative cursor-pointer rounded-lg p-2 text-white transition-colors hover:bg-white/20"
+						class="group/tooltip pointer-events-auto relative cursor-pointer rounded-lg p-2 text-white transition-colors hover:bg-white/20"
 						aria-label="Share"
 					>
 						<Share2 class="h-6 w-6" />
 						<span
-							class="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded bg-black/90 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100"
+							class="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 rounded bg-black/90 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100"
 						>
 							Share
 						</span>
@@ -371,7 +374,7 @@
 						>
 							<button
 								onclick={copyLinkToClipboard}
-								class="flex items-center gap-2 whitespace-nowrap rounded px-3 py-2 text-sm text-white transition-colors hover:bg-white/10"
+								class="flex items-center gap-2 rounded px-3 py-2 text-sm whitespace-nowrap text-white transition-colors hover:bg-white/10"
 							>
 								<Link class="h-4 w-4" />
 								Copy Link
@@ -382,12 +385,12 @@
 
 				<button
 					onclick={handleDownload}
-					class="pointer-events-auto group/tooltip relative cursor-pointer rounded-lg p-2 text-white transition-colors hover:bg-white/20"
+					class="group/tooltip pointer-events-auto relative cursor-pointer rounded-lg p-2 text-white transition-colors hover:bg-white/20"
 					aria-label="Download photo"
 				>
 					<Download class="h-6 w-6" />
 					<span
-						class="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded bg-black/90 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100"
+						class="pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 rounded bg-black/90 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100"
 					>
 						Download
 					</span>

@@ -25,7 +25,9 @@
 
 <div class="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3">
 	{#each pictures as picture (picture.id)}
-		<div class="group relative overflow-hidden rounded bg-gray-800 shadow-[0_1px_3px_rgba(0,0,0,0.3)] transition-[box-shadow,transform] duration-200 ease-[ease] hover:shadow-[0_4px_12px_rgba(0,0,0,0.5)] hover:-translate-y-0.5">
+		<div
+			class="group relative overflow-hidden rounded bg-gray-800 shadow-[0_1px_3px_rgba(0,0,0,0.3)] transition-[box-shadow,transform] duration-200 ease-[ease] hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.5)]"
+		>
 			<!-- Pulsing placeholder -->
 			<div class="absolute inset-0 animate-pulse bg-gray-700/50"></div>
 

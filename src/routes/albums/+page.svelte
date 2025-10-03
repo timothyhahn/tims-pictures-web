@@ -32,7 +32,7 @@
 				<p class="text-xl text-gray-400">No albums found</p>
 			</div>
 		{/if}
-	{:catch error}
+	{:catch}
 		<div class="mb-6 rounded-lg border border-red-800 bg-red-900/20 p-4">
 			<p class="text-red-400">Error loading albums</p>
 		</div>

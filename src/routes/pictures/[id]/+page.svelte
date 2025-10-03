@@ -7,7 +7,13 @@
 
 	let { data }: { data: PageData } = $props();
 
-	let albumData = $state<any>(null);
+	interface AlbumData {
+		albumSlug: string;
+		allPictures: Picture[];
+		currentIndex: number;
+	}
+
+	let albumData = $state<AlbumData | null>(null);
 
 	// Get the 'back' query param, default to 'album'
 	let backLocation = $derived($page.url.searchParams.get('back') || 'album');
@@ -29,14 +35,14 @@
 			});
 	});
 
-	function handleNext(allPictures: any[], currentIndex: number) {
+	function handleNext(allPictures: Picture[], currentIndex: number) {
 		if (currentIndex < allPictures.length - 1) {
 			const nextPicture = allPictures[currentIndex + 1];
 			goto(`/pictures/${nextPicture.id}?back=${backLocation}`);
 		}
 	}
 
-	function handlePrevious(allPictures: any[], currentIndex: number) {
+	function handlePrevious(allPictures: Picture[], currentIndex: number) {
 		if (currentIndex > 0) {
 			const prevPicture = allPictures[currentIndex - 1];
 			goto(`/pictures/${prevPicture.id}?back=${backLocation}`);

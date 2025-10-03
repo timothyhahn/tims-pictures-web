@@ -1,5 +1,11 @@
 <script lang="ts">
 	import type { Picture } from '$lib/api/types';
+	import {
+		getPatternIndex,
+		isTallItem as checkTallItem,
+		isWideItem as checkWideItem,
+		isBigItem as checkBigItem
+	} from '$lib/utils/masonry';
 
 	interface Props {
 		pictures: Picture[];
@@ -17,102 +23,20 @@
 		onPhotoClick
 	}: Props = $props();
 
-	// ============================================================================
-	// MASONRY PATTERN SYSTEM
-	// ============================================================================
-	// We use 3 different masonry patterns based on album identifier to make the
-	// repeating pattern virtually undetectable. Each pattern uses different prime
-	// numbers to determine tall/wide/big items.
-	//
-	// Pattern selection: Hash the album identifier and mod 3 to get 0, 1, or 2
-	// ============================================================================
+	// Select which masonry pattern to use based on album identifier
+	const patternIndex = getPatternIndex(albumIdentifier);
 
-	/**
-	 * Define 3 distinct masonry patterns using different prime numbers.
-	 * Each pattern has two sets of modulo checks for tall and wide items.
-	 * The intersection creates rare "big" items (2x2).
-	 */
-	const MASONRY_PATTERNS = [
-		// Pattern 0: Original pattern
-		{
-			tall: [
-				{ mod: 13, offset: 4 }, // 13n + 5 in 1-indexed
-				{ mod: 19, offset: 10 } // 19n + 11 in 1-indexed
-			],
-			wide: [
-				{ mod: 17, offset: 2 }, // 17n + 3 in 1-indexed
-				{ mod: 23, offset: 6 } // 23n + 7 in 1-indexed
-			]
-		},
-		// Pattern 1: Different primes for variety
-		{
-			tall: [
-				{ mod: 11, offset: 3 }, // 11n + 4 in 1-indexed
-				{ mod: 17, offset: 8 } // 17n + 9 in 1-indexed
-			],
-			wide: [
-				{ mod: 13, offset: 5 }, // 13n + 6 in 1-indexed
-				{ mod: 19, offset: 12 } // 19n + 13 in 1-indexed
-			]
-		},
-		// Pattern 2: Yet another set
-		{
-			tall: [
-				{ mod: 23, offset: 7 }, // 23n + 8 in 1-indexed
-				{ mod: 29, offset: 14 } // 29n + 15 in 1-indexed
-			],
-			wide: [
-				{ mod: 11, offset: 6 }, // 11n + 7 in 1-indexed
-				{ mod: 13, offset: 9 } // 13n + 10 in 1-indexed
-			]
-		}
-	] as const;
-
-	/**
-	 * Simple string hash function to convert album identifier to a number
-	 */
-	function hashString(str: string): number {
-		let hash = 0;
-		for (let i = 0; i < str.length; i++) {
-			const char = str.charCodeAt(i);
-			hash = (hash << 5) - hash + char;
-			hash = hash & hash; // Convert to 32-bit integer
-		}
-		return Math.abs(hash);
-	}
-
-	/**
-	 * Select which masonry pattern to use based on album identifier
-	 * Falls back to pattern 0 if no identifier provided
-	 */
-	const patternIndex = albumIdentifier ? hashString(albumIdentifier) % 3 : 0;
-	const selectedPattern = MASONRY_PATTERNS[patternIndex];
-
-	/**
-	 * Check if an item should be tall (span 2 rows) based on selected pattern
-	 */
 	function isTallItem(index: number): boolean {
-		return selectedPattern.tall.some((rule) => index % rule.mod === rule.offset);
+		return checkTallItem(index, patternIndex);
 	}
 
-	/**
-	 * Check if an item should be wide (span 2 columns) based on selected pattern
-	 */
 	function isWideItem(index: number): boolean {
-		return selectedPattern.wide.some((rule) => index % rule.mod === rule.offset);
+		return checkWideItem(index, patternIndex);
 	}
 
-	/**
-	 * Check if an item should be big (span 2 rows AND 2 columns)
-	 * This happens when an item matches both tall and wide patterns - rare!
-	 */
 	function isBigItem(index: number): boolean {
-		return isTallItem(index) && isWideItem(index);
+		return checkBigItem(index, patternIndex);
 	}
-
-	// ============================================================================
-	// END MASONRY PATTERN SYSTEM
-	// ============================================================================
 
 	function getImageClass(index: number): string {
 		// Only use special images for grid layout (not columns) on tablet+
@@ -135,9 +59,15 @@
 	<div class={useColumnsLayout ? 'columns-1 gap-4 sm:columns-2 xl:columns-3' : 'grid-layout'}>
 		{#each pictures as picture, index (picture.id)}
 			<div
-				class="photo-item group relative mb-4 overflow-hidden rounded shadow-[0_1px_3px_rgba(0,0,0,0.3)] transition-[box-shadow,transform] duration-200 ease-in hover:shadow-[0_4px_12px_rgba(0,0,0,0.5)] hover:-translate-y-0.5 {useColumnsLayout
+				class="photo-item group relative mb-4 overflow-hidden rounded shadow-[0_1px_3px_rgba(0,0,0,0.3)] transition-[box-shadow,transform] duration-200 ease-in hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.5)] {useColumnsLayout
 					? 'break-inside-avoid'
-					: ''} {!useColumnsLayout && isBigItem(index) ? 'big-item' : !useColumnsLayout && isTallItem(index) ? 'tall-item' : !useColumnsLayout && isWideItem(index) ? 'wide-item' : ''}"
+					: ''} {!useColumnsLayout && isBigItem(index)
+					? 'big-item'
+					: !useColumnsLayout && isTallItem(index)
+						? 'tall-item'
+						: !useColumnsLayout && isWideItem(index)
+							? 'wide-item'
+							: ''}"
 			>
 				<!-- Pulsing placeholder -->
 				<div class="absolute inset-0 animate-pulse bg-gray-700/50"></div>
@@ -150,7 +80,9 @@
 					<img
 						src="{picture.image_url}?class={getImageClass(index)}"
 						alt={picture.description || 'Photo'}
-						class="image-fade-in relative w-full cursor-pointer {useColumnsLayout ? '' : 'h-full object-cover'}"
+						class="image-fade-in relative w-full cursor-pointer {useColumnsLayout
+							? ''
+							: 'h-full object-cover'}"
 						loading="lazy"
 						onload={(e) => e.currentTarget.classList.add('loaded')}
 					/>
