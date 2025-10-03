@@ -258,7 +258,10 @@
 			<div class="p-6">
 				<div class="mb-6 flex items-start justify-between">
 					<h2 class="text-xl font-bold">Photo Information</h2>
-					<button onclick={toggleInfo} class="cursor-pointer p-1 text-gray-400 transition-colors hover:text-white">
+					<button
+						onclick={toggleInfo}
+						class="cursor-pointer p-1 text-gray-400 transition-colors hover:text-white"
+					>
 						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"

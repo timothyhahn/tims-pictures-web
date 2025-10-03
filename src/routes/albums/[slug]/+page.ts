@@ -11,13 +11,12 @@ export const load: PageLoad = async ({ params, fetch }) => {
 	}
 
 	// Fetch album - AWAIT for OpenGraph tags
-	const album = await fetch(`/api/v1/albums/slug/${normalizedSlug}`)
-		.then((response) => {
-			if (!response.ok) {
-				throw error(404, 'Album not found');
-			}
-			return response.json();
-		});
+	const album = await fetch(`/api/v1/albums/slug/${normalizedSlug}`).then((response) => {
+		if (!response.ok) {
+			throw error(404, 'Album not found');
+		}
+		return response.json();
+	});
 
 	// Fetch pictures - stream this
 	const picturesPromise = fetch(`/api/v1/albums/${album.id}/pictures?per_page=50`)

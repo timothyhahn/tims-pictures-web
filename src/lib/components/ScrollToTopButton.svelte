@@ -21,7 +21,9 @@
 {#if show}
 	<button
 		onclick={handleClick}
-		class="fixed right-4 bottom-4 z-50 cursor-pointer rounded-full bg-white/10 p-3 backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-white/20 focus:ring-2 focus:ring-white/50 focus:outline-none {isPopping ? 'bubble-pop' : ''}"
+		class="fixed right-4 bottom-4 z-50 cursor-pointer rounded-full bg-white/10 p-3 backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:bg-white/20 focus:ring-2 focus:ring-white/50 focus:outline-none {isPopping
+			? 'bubble-pop'
+			: ''}"
 		aria-label="Scroll back to top of page"
 		type="button"
 	>

@@ -112,6 +112,10 @@
 
 <svelte:window bind:scrollY={y} />
 
+<svelte:head>
+	<title>Tim's Pictures</title>
+</svelte:head>
+
 <div class="container mx-auto">
 	<!-- Loading State -->
 	{#if !initialPicturesLoaded}

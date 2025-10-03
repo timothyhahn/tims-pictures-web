@@ -26,10 +26,7 @@
 <div class="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 lg:grid-cols-3">
 	{#each pictures as picture (picture.id)}
 		<div class="group relative overflow-hidden rounded-lg bg-gray-800">
-			<a
-				href="/pictures/{picture.id}?back={backLocation}"
-				onclick={(e) => handleClick(e, picture)}
-			>
+			<a href="/pictures/{picture.id}?back={backLocation}" onclick={(e) => handleClick(e, picture)}>
 				<img
 					src="{picture.image_url}?class=thumbnail"
 					alt={picture.description || 'Photo'}

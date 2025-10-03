@@ -138,17 +138,15 @@
 <svelte:window bind:scrollY={y} />
 
 <svelte:head>
-	{#if album}
-		<title>{album.name} - Tim's Pictures</title>
-		<meta property="og:title" content={album.name} />
-		<meta property="og:type" content="website" />
-		<meta property="og:url" content={ogUrl} />
-		{#if album.cover_picture_url}
-			<meta property="og:image" content={album.cover_picture_url} />
-		{/if}
-		{#if album.description}
-			<meta property="og:description" content={album.description} />
-		{/if}
+	<title>{album?.name ? `${album.name} - Tim's Pictures` : "Tim's Pictures"}</title>
+	<meta property="og:title" content={album?.name || "Tim's Pictures"} />
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content={ogUrl} />
+	{#if album?.cover_picture_url}
+		<meta property="og:image" content={album.cover_picture_url} />
+	{/if}
+	{#if album?.description}
+		<meta property="og:description" content={album.description} />
 	{/if}
 </svelte:head>
 

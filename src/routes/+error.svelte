@@ -8,9 +8,7 @@
 
 		{#if $page.status === 404}
 			<h2 class="mb-4 text-2xl font-semibold text-gray-300">Page Not Found</h2>
-			<p class="mb-8 text-gray-400">
-				Sorry, we couldn't find what you're looking for.
-			</p>
+			<p class="mb-8 text-gray-400">Sorry, we couldn't find what you're looking for.</p>
 		{:else}
 			<h2 class="mb-4 text-2xl font-semibold text-gray-300">Something went wrong</h2>
 			<p class="mb-8 text-gray-400">

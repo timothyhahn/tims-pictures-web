@@ -12,7 +12,11 @@ export const load: PageLoad = async ({ params, fetch }) => {
 			try {
 				const state = JSON.parse(navState);
 				// Check if data is fresh (less than 5 minutes old)
-				if (Date.now() - state.timestamp < 5 * 60 * 1000 && state.pictures && state.pictures.length > 0) {
+				if (
+					Date.now() - state.timestamp < 5 * 60 * 1000 &&
+					state.pictures &&
+					state.pictures.length > 0
+				) {
 					cachedNavState = state;
 				}
 			} catch {
@@ -22,13 +26,12 @@ export const load: PageLoad = async ({ params, fetch }) => {
 	}
 
 	// Fetch the picture first - AWAIT for OpenGraph tags
-	const picture = await fetch(`/api/v1/pictures/${params.id}`)
-		.then((response) => {
-			if (!response.ok) {
-				throw error(404, 'Picture not found');
-			}
-			return response.json();
-		});
+	const picture = await fetch(`/api/v1/pictures/${params.id}`).then((response) => {
+		if (!response.ok) {
+			throw error(404, 'Picture not found');
+		}
+		return response.json();
+	});
 
 	// After getting the picture, fetch album metadata - stream this
 	const albumDataPromise = fetch(`/api/v1/albums/${picture.album_id}`)

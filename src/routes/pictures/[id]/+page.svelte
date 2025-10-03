@@ -53,7 +53,7 @@
 </script>
 
 <svelte:head>
-	<title>{picture?.description || 'Photo'} - Tim's Pictures</title>
+	<title>{picture ? `${picture.description || 'Photo'} - Tim's Pictures` : "Tim's Pictures"}</title>
 	<meta property="og:title" content="Tim's Pictures" />
 	<meta property="og:type" content="website" />
 	<meta property="og:url" content={ogUrl} />
@@ -69,8 +69,16 @@
 	<Lightbox
 		{picture}
 		albumSlug={albumData.albumSlug}
-		onNext={backLocation === 'home' ? undefined : albumData.currentIndex < albumData.allPictures.length - 1 ? () => handleNext(albumData.allPictures, albumData.currentIndex) : undefined}
-		onPrevious={backLocation === 'home' ? undefined : albumData.currentIndex > 0 ? () => handlePrevious(albumData.allPictures, albumData.currentIndex) : undefined}
+		onNext={backLocation === 'home'
+			? undefined
+			: albumData.currentIndex < albumData.allPictures.length - 1
+				? () => handleNext(albumData.allPictures, albumData.currentIndex)
+				: undefined}
+		onPrevious={backLocation === 'home'
+			? undefined
+			: albumData.currentIndex > 0
+				? () => handlePrevious(albumData.allPictures, albumData.currentIndex)
+				: undefined}
 		onClose={() => handleClose(albumData.albumSlug)}
 	/>
 {:else}

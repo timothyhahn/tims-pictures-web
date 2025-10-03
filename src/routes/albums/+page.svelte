@@ -5,6 +5,10 @@
 	let { data }: { data: PageData } = $props();
 </script>
 
+<svelte:head>
+	<title>Albums - Tim's Pictures</title>
+</svelte:head>
+
 <div class="container mx-auto p-6">
 	<!-- Header -->
 	<div class="mb-8">
