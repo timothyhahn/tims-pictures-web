@@ -1,0 +1,31 @@
+@import 'tailwindcss';
+@import '@fontsource/raleway/300.css';
+@import '@fontsource/raleway/400.css';
+@import '@fontsource/raleway/700.css';
+
+@theme {
+	--font-family-sans: 'Raleway', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+/* Clean photography site theme */
+:root {
+	--color-bg: #17211f;
+	--color-surface: #1a1a1a;
+	--color-text: #ffffff;
+	--color-text-secondary: #999999;
+	--color-accent: #ffffff;
+	--color-accent-hover: #cccccc;
+}
+
+body {
+	background-color: var(--color-bg);
+	color: var(--color-text);
+	font-family: 'Raleway', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+	font-weight: 300;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+* {
+	font-family: 'Raleway', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
