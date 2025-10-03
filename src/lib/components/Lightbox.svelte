@@ -136,7 +136,7 @@
 		if (typeof window !== 'undefined' && 'fathom' in window) {
 			try {
 				const windowWithFathom = window as typeof window & {
-					fathom: { trackEvent: (name: string, data: { _value: number }) => void };
+					fathom: { trackEvent: (name: string, data: { _value: string }) => void };
 				};
 				windowWithFathom.fathom.trackEvent('image downloaded', { _value: picture.id });
 			} catch (err) {

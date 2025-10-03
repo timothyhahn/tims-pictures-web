@@ -72,21 +72,22 @@
 </svelte:head>
 
 {#if picture && albumData}
+	{@const data = albumData}
 	<Lightbox
 		{picture}
-		albumSlug={albumData.albumSlug}
+		albumSlug={data.albumSlug}
 		{backLocation}
 		onNext={backLocation === 'home'
 			? undefined
-			: albumData.currentIndex < albumData.allPictures.length - 1
-				? () => handleNext(albumData.allPictures, albumData.currentIndex)
+			: data.currentIndex < data.allPictures.length - 1
+				? () => handleNext(data.allPictures, data.currentIndex)
 				: undefined}
 		onPrevious={backLocation === 'home'
 			? undefined
-			: albumData.currentIndex > 0
-				? () => handlePrevious(albumData.allPictures, albumData.currentIndex)
+			: data.currentIndex > 0
+				? () => handlePrevious(data.allPictures, data.currentIndex)
 				: undefined}
-		onClose={() => handleClose(albumData.albumSlug)}
+		onClose={() => handleClose(data.albumSlug)}
 	/>
 {:else}
 	<div class="flex h-screen items-center justify-center">

@@ -1,1 +1,10 @@
+# Run TruffleHog to check for secrets (if installed)
+if command -v trufflehog &> /dev/null; then
+    trufflehog git file://. --since-commit HEAD --only-verified --fail
+fi
+
+# Run lint-staged for formatting
 npx lint-staged
+
+# Run TypeScript type checking
+npm run check

@@ -32,10 +32,12 @@ Object.defineProperty(globalThis, 'sessionStorage', {
 });
 
 const mockPicture: Picture = {
-	id: 1,
+	id: '1',
+	album_id: '1',
+	created_at: '2024-01-01T00:00:00Z',
+	updated_at: '2024-01-01T00:00:00Z',
 	image_url: 'https://example.com/image.jpg',
 	description: 'Test picture',
-	uploaded_at: '2024-01-01',
 	metadata: {}
 };
 
