@@ -64,7 +64,7 @@
 			rel="noopener noreferrer"
 			class="block rounded-lg px-4 py-2 text-gray-400 transition-colors hover:bg-white/5 hover:text-white"
 		>
-			allie.today →
+			Allie, Today →
 		</a>
 	</div>
 </nav>

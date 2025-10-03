@@ -61,8 +61,8 @@
 	<Lightbox
 		{picture}
 		{albumSlug}
-		onNext={currentIndex < allPictures.length - 1 ? handleNext : undefined}
-		onPrevious={currentIndex > 0 ? handlePrevious : undefined}
+		onNext={backLocation === 'home' ? undefined : currentIndex < allPictures.length - 1 ? handleNext : undefined}
+		onPrevious={backLocation === 'home' ? undefined : currentIndex > 0 ? handlePrevious : undefined}
 		onClose={handleClose}
 	/>
 {:else}

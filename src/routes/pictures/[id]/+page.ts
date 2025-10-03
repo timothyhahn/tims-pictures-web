@@ -34,33 +34,9 @@ export const load: PageLoad = async ({ params, fetch }) => {
 			throw err;
 		});
 
-	// After getting the picture, fetch album and all pictures in parallel
+	// After getting the picture, fetch album metadata and use cached pictures if available
 	const albumDataPromise = picturePromise.then((picture) => {
-		// If we have cached state for this album, use it instead of fetching
-		if (cachedNavState && cachedNavState.albumId === picture.album_id) {
-			const currentIndex = cachedNavState.pictures.findIndex((p: Picture) => p.id === params.id);
-
-			// Still fetch album metadata for slug and name
-			return fetch(`/api/v1/albums/${picture.album_id}`)
-				.then((response) => {
-					if (!response.ok) {
-						throw error(500, 'Failed to load album');
-					}
-					return response.json();
-				})
-				.then((album) => ({
-					albumSlug: album.slug,
-					albumName: album.name,
-					allPictures: cachedNavState.pictures,
-					currentIndex
-				}))
-				.catch((err) => {
-					console.error('Failed to load album:', err);
-					throw err;
-				});
-		}
-
-		// No cached state, fetch everything
+		// Fetch album metadata
 		const albumPromise = fetch(`/api/v1/albums/${picture.album_id}`)
 			.then((response) => {
 				if (!response.ok) {
@@ -73,26 +49,24 @@ export const load: PageLoad = async ({ params, fetch }) => {
 				throw err;
 			});
 
-		const allPicturesPromise = fetch(`/api/v1/albums/${picture.album_id}/pictures?per_page=100`)
-			.then((response) => {
-				if (!response.ok) {
-					throw error(500, 'Failed to load album pictures');
-				}
-				return response.json();
-			})
-			.then((data) => data.data)
-			.catch((err) => {
-				console.error('Failed to load album pictures:', err);
-				return [];
-			});
+		return albumPromise.then((album) => {
+			// If we have cached state for this album, use it for navigation
+			if (cachedNavState && cachedNavState.albumId === picture.album_id) {
+				const currentIndex = cachedNavState.pictures.findIndex((p: Picture) => p.id === params.id);
+				return {
+					albumSlug: album.slug,
+					albumName: album.name,
+					allPictures: cachedNavState.pictures,
+					currentIndex
+				};
+			}
 
-		return Promise.all([albumPromise, allPicturesPromise]).then(([album, allPictures]) => {
-			const currentIndex = allPictures.findIndex((p: Picture) => p.id === params.id);
+			// No cached state - return empty array (no prev/next navigation)
 			return {
 				albumSlug: album.slug,
 				albumName: album.name,
-				allPictures,
-				currentIndex
+				allPictures: [],
+				currentIndex: -1
 			};
 		});
 	});

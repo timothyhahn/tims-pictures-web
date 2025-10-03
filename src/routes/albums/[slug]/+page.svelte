@@ -21,41 +21,43 @@
 	// Load album and pictures from promises
 	$effect(() => {
 		if (!initialLoad) {
-			data.album.then((loadedAlbum) => {
-				album = loadedAlbum;
-			});
+			Promise.all([data.album, data.picturesData]).then(
+				([loadedAlbum, { pictures: loadedPictures, totalPictures: total }]) => {
+					album = loadedAlbum;
+					pictures = loadedPictures;
+					totalPictures = total;
+					initialLoad = true;
 
-			data.picturesData.then(({ pictures: loadedPictures, totalPictures: total }) => {
-				pictures = loadedPictures;
-				totalPictures = total;
-				initialLoad = true;
+					// Check if we got less than a full page, meaning we're done
+					if (loadedPictures.length < PER_PAGE) {
+						done = true;
+					}
 
-				// Check if we got less than a full page, meaning we're done
-				if (loadedPictures.length < PER_PAGE) {
-					done = true;
-				}
+					// Check for saved state after both album and pictures load
+					const savedState = sessionStorage.getItem('albumState');
+					if (savedState) {
+						try {
+							const state = JSON.parse(savedState);
+							// Check if data is fresh (less than 5 minutes old) and same album
+							if (
+								Date.now() - state.timestamp < 5 * 60 * 1000 &&
+								state.albumId === loadedAlbum.id
+							) {
+								pictures = state.pictures;
+								page = state.page;
+								done = state.done;
 
-				// Check for saved state after pictures load
-				const savedState = sessionStorage.getItem('albumState');
-				if (savedState) {
-					try {
-						const state = JSON.parse(savedState);
-						// Check if data is fresh (less than 5 minutes old) and same album
-						if (Date.now() - state.timestamp < 5 * 60 * 1000 && state.albumId === album?.id) {
-							pictures = state.pictures;
-							page = state.page;
-							done = state.done;
-
-							setTimeout(() => {
-								window.scrollTo(0, state.scrollY);
-							}, 0);
+								setTimeout(() => {
+									window.scrollTo(0, state.scrollY);
+								}, 0);
+							}
+							sessionStorage.removeItem('albumState');
+						} catch {
+							sessionStorage.removeItem('albumState');
 						}
-						sessionStorage.removeItem('albumState');
-					} catch {
-						sessionStorage.removeItem('albumState');
 					}
 				}
-			});
+			);
 		}
 	});
 

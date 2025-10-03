@@ -9,7 +9,6 @@
 	<!-- Header -->
 	<div class="mb-8">
 		<h1 class="mb-2 text-4xl font-bold">Albums</h1>
-		<p class="text-gray-400">Browse all public photo albums</p>
 	</div>
 
 	<!-- Albums Grid -->
