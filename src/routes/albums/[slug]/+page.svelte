@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { onMount } from 'svelte';
+	import { tick } from 'svelte';
 	import ScrollToTopButton from '$lib/components/ScrollToTopButton.svelte';
 	import type { PageData } from './$types';
 	import type { Picture } from '$lib/api/types';
@@ -15,6 +15,13 @@
 	let loading = $state(false);
 	let done = $state(false);
 	let initialLoad = $state(false);
+
+	// Masonry grid state
+	let masonryElement: HTMLElement | null = null;
+	let gridItems: HTMLElement[] = [];
+	let ncol = $state(0);
+	let gap = $state(0);
+	let mod = $state(0);
 
 	const PER_PAGE = 20;
 
@@ -156,7 +163,88 @@
 			goto(`/pictures/${picture.id}?back=album`);
 		}
 	}
+
+	// Masonry layout logic
+	const refreshLayout = async (): Promise<void> => {
+		if (!masonryElement || gridItems.length === 0) return;
+
+		const currentNcol = getComputedStyle(masonryElement).gridTemplateColumns.split(' ').length;
+
+		gridItems.forEach((c) => {
+			const newHeight = c.getBoundingClientRect().height;
+			const currentHeight = parseFloat(c.dataset.h || '0');
+
+			if (newHeight !== currentHeight) {
+				c.dataset.h = newHeight.toString();
+				mod++;
+			}
+		});
+
+		if (ncol !== currentNcol || mod > 0) {
+			ncol = currentNcol;
+			gridItems.forEach((c) => c.style.removeProperty('margin-top'));
+
+			if (ncol > 1) {
+				gridItems.slice(ncol).forEach((c, i) => {
+					const prevBottom = gridItems[i].getBoundingClientRect().bottom;
+					const currTop = c.getBoundingClientRect().top;
+					c.style.marginTop = `${prevBottom + gap - currTop}px`;
+				});
+			}
+
+			mod = 0;
+		}
+	};
+
+	const calcGrid = async (): Promise<void> => {
+		await tick();
+
+		if (!masonryElement) return;
+
+		// Check if browser supports native masonry
+		if (getComputedStyle(masonryElement).gridTemplateRows !== 'masonry') {
+			gap = parseFloat(getComputedStyle(masonryElement).gridRowGap);
+			gridItems = Array.from(masonryElement.childNodes).filter(
+				(c): c is HTMLElement =>
+					c instanceof HTMLElement && +getComputedStyle(c).gridColumnEnd !== -1
+			);
+
+			refreshLayout();
+		}
+	};
+
+	// Effect to handle masonry layout when pictures change
+	$effect(() => {
+		if (pictures.length > 0) {
+			calcGrid();
+		}
+	});
+
+	// Effect to handle window resize
+	$effect(() => {
+		if (typeof window !== 'undefined') {
+			window.addEventListener('resize', refreshLayout);
+
+			return () => {
+				window.removeEventListener('resize', refreshLayout);
+			};
+		}
+	});
 </script>
+
+<style>
+	.photo-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(20rem, 100%), 1fr));
+		grid-template-rows: masonry;
+		gap: 1rem;
+		align-items: start;
+	}
+
+	.photo-grid > * {
+		align-self: start;
+	}
+</style>
 
 <svelte:window bind:scrollY={y} />
 
@@ -192,11 +280,11 @@
 		</div>
 	{/if}
 
-	<!-- Masonry Grid - Using CSS columns for now -->
+	<!-- Masonry Grid - Using CSS Grid for left-to-right, top-to-bottom ordering -->
 	{#if pictures.length > 0}
-		<div class="columns-1 gap-4 sm:columns-2 lg:columns-3 xl:columns-4">
+		<div bind:this={masonryElement} class="photo-grid">
 			{#each pictures as picture (picture.id)}
-				<div class="group mb-4 break-inside-avoid overflow-hidden rounded-lg">
+				<div class="group overflow-hidden rounded-lg">
 					<a
 						href="/pictures/{picture.id}?back=album"
 						onclick={(e) => handlePhotoClick(e, picture)}
