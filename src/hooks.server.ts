@@ -1,3 +1,5 @@
+import { sequence } from '@sveltejs/kit/hooks';
+import * as Sentry from '@sentry/sveltekit';
 import type { Handle } from '@sveltejs/kit';
 import { RetryAfterRateLimiter } from 'sveltekit-rate-limiter/server';
 
@@ -10,7 +12,7 @@ const ipLimiter = new RetryAfterRateLimiter({
 	IP: [10, 's']
 });
 
-export const handle: Handle = async ({ event, resolve }) => {
+export const handle: Handle = sequence(Sentry.sentryHandle(), async ({ event, resolve }) => {
 	const hostname = event.request.headers.get('host');
 	const url = event.url;
 
@@ -53,4 +55,5 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	return resolve(event);
-};
+});
+export const handleError = Sentry.handleErrorWithSentry();
