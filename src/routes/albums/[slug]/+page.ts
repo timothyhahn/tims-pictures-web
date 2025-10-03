@@ -19,7 +19,7 @@ export const load: PageLoad = async ({ params, fetch }) => {
 	});
 
 	// Fetch pictures - stream this
-	const picturesPromise = fetch(`/api/v1/albums/${album.id}/pictures?per_page=50`)
+	const picturesPromise = fetch(`/api/v1/albums/${album.id}/pictures?per_page=20`)
 		.then((response) => {
 			if (!response.ok) {
 				throw error(500, 'Failed to load pictures');

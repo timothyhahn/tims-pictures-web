@@ -16,7 +16,7 @@
 	let done = $state(false);
 	let initialLoad = $state(false);
 
-	const PER_PAGE = 50;
+	const PER_PAGE = 20;
 
 	// Derive OpenGraph URL from page store without query params
 	let ogUrl = $derived($pageStore.url.origin + $pageStore.url.pathname);
@@ -98,12 +98,35 @@
 		}
 	}
 
+	// Debounced scroll handler to prevent blocking
+	let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
 	$effect(() => {
-		if (y && y + window.innerHeight >= document.body.scrollHeight - 100) {
-			if (!loading && !done && initialLoad) {
-				loadNextPage();
-			}
+		// Guard against undefined y (race condition during initialization)
+		if (typeof y !== 'number' || y < 0) {
+			return;
 		}
+
+		// Check if we're near the bottom of the page
+		const nearBottom = y + window.innerHeight >= document.body.scrollHeight - 100;
+
+		if (nearBottom && !loading && !done && initialLoad) {
+			// Clear any existing timeout
+			if (scrollTimeout) {
+				clearTimeout(scrollTimeout);
+			}
+			// Debounce the load to prevent excessive calls
+			scrollTimeout = setTimeout(() => {
+				loadNextPage();
+			}, 100);
+		}
+
+		// Cleanup function to prevent memory leaks and race conditions
+		return () => {
+			if (scrollTimeout) {
+				clearTimeout(scrollTimeout);
+				scrollTimeout = null;
+			}
+		};
 	});
 
 	function handlePhotoClick(event: MouseEvent, picture: Picture) {
@@ -174,7 +197,11 @@
 		<div class="columns-1 gap-4 sm:columns-2 lg:columns-3 xl:columns-4">
 			{#each pictures as picture (picture.id)}
 				<div class="group mb-4 break-inside-avoid overflow-hidden rounded-lg">
-					<a href="/pictures/{picture.id}?back=album" onclick={(e) => handlePhotoClick(e, picture)}>
+					<a
+						href="/pictures/{picture.id}?back=album"
+						onclick={(e) => handlePhotoClick(e, picture)}
+						data-sveltekit-preload-data="off"
+					>
 						<img
 							src="{picture.image_url}?class=thumbnail"
 							alt={picture.description || 'Photo'}
@@ -188,6 +215,17 @@
 	{:else if album}
 		<div class="py-16 text-center">
 			<p class="text-xl text-gray-400">Loading pictures...</p>
+		</div>
+	{/if}
+
+	<!-- Loading indicator for infinite scroll -->
+	{#if loading && pictures.length > 0}
+		<div class="flex justify-center py-8">
+			<div class="flex space-x-2">
+				<div class="h-3 w-3 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.3s]"></div>
+				<div class="h-3 w-3 animate-bounce rounded-full bg-gray-400 [animation-delay:-0.15s]"></div>
+				<div class="h-3 w-3 animate-bounce rounded-full bg-gray-400"></div>
+			</div>
 		</div>
 	{/if}
 </div>
