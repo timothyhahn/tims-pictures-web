@@ -208,9 +208,9 @@
 
 	<!-- Photo layout - columns for small albums, grid for large albums -->
 	{#if pictures.length > 0}
-		<div class={useColumnsLayout ? 'columns-layout' : 'grid-layout'}>
+		<div class={useColumnsLayout ? 'columns-1 gap-4 sm:columns-2 xl:columns-3' : 'grid-layout'}>
 			{#each pictures as picture (picture.id)}
-				<div class="photo-item group mb-4 overflow-hidden {useColumnsLayout ? 'break-inside-avoid' : ''}">
+				<div class="photo-item group mb-4 overflow-hidden rounded shadow-[0_1px_3px_rgba(0,0,0,0.3)] transition-[box-shadow,transform] duration-200 ease-in hover:shadow-[0_4px_12px_rgba(0,0,0,0.5)] hover:-translate-y-0.5 {useColumnsLayout ? 'break-inside-avoid' : ''}">
 					<a
 						href="/pictures/{picture.id}?back=album"
 						onclick={(e) => handlePhotoClick(e, picture)}
@@ -219,7 +219,7 @@
 						<img
 							src="{picture.image_url}?class=thumbnail"
 							alt={picture.description || 'Photo'}
-							class="w-full cursor-pointer"
+							class="w-full cursor-pointer {useColumnsLayout ? '' : 'h-full object-cover'}"
 							loading="lazy"
 						/>
 					</a>
@@ -247,97 +247,54 @@
 <ScrollToTopButton show={y > 300} {scrollToTop} />
 
 <style>
-	/* Fade in animation for new images */
-	.photo-item {
-		animation: fadeIn 0.3s ease-in;
-		border-radius: 0.25rem;
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-		transition: box-shadow 0.2s ease, transform 0.2s ease;
-	}
-
-	.photo-item:hover {
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-		transform: translateY(-2px);
-	}
-
-	@keyframes fadeIn {
-		from {
-			opacity: 0;
-			transform: translateY(10px);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
-	}
-
-	/* Columns layout for small albums - top to bottom, left to right */
-	.columns-layout {
-		columns: 1;
-		gap: 1rem;
-	}
-
-	.columns-layout .photo-item {
-		border-radius: 0.25rem;
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-		transition: box-shadow 0.2s ease, transform 0.2s ease;
-	}
-
-	.columns-layout .photo-item:hover {
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-		transform: translateY(-2px);
-	}
-
-	@media (min-width: 640px) {
-		.columns-layout {
-			columns: 2;
-		}
-	}
-
-	@media (min-width: 1280px) {
-		.columns-layout {
-			columns: 3;
-		}
-	}
-
 	/* Grid layout with faux masonry - complex repeating pattern */
 	.grid-layout {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
-		grid-auto-rows: 400px;
 		gap: 1rem;
-		grid-auto-flow: dense; /* Fill gaps optimally */
+		grid-auto-flow: dense;
 	}
 
 	.grid-layout .photo-item {
 		height: 100%;
 	}
 
-	.grid-layout img {
-		width: 100%;
-		height: 100%;
-		object-fit: cover;
+	/* Mobile: single column, natural aspect ratio (no masonry) */
+	@media (max-width: 639px) {
+		.grid-layout {
+			grid-template-columns: 1fr;
+			grid-auto-rows: auto;
+		}
+
+		.grid-layout .photo-item {
+			height: auto;
+		}
 	}
 
-	/* Create subtle pattern using larger primes - spreads tall items out more */
-	/* Pattern repeats every 247 items (13 × 19) making it very non-obvious */
-	.grid-layout .photo-item:nth-child(13n + 5),
-	.grid-layout .photo-item:nth-child(19n + 11) {
-		grid-row: span 2;
-	}
-
-	/* Responsive adjustments */
-	@media (max-width: 1023px) {
+	/* Tablet: 2-3 columns with masonry */
+	@media (min-width: 640px) and (max-width: 1023px) {
 		.grid-layout {
 			grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
 			grid-auto-rows: 350px;
 		}
+
+		/* Masonry pattern for tablet+ */
+		.grid-layout .photo-item:nth-child(13n + 5),
+		.grid-layout .photo-item:nth-child(19n + 11) {
+			grid-row: span 2;
+		}
 	}
 
-	@media (max-width: 639px) {
+	/* Desktop: 3 columns with masonry */
+	@media (min-width: 1024px) {
 		.grid-layout {
-			grid-template-columns: 1fr;
+			grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
 			grid-auto-rows: 400px;
+		}
+
+		/* Masonry pattern for desktop */
+		.grid-layout .photo-item:nth-child(13n + 5),
+		.grid-layout .photo-item:nth-child(19n + 11) {
+			grid-row: span 2;
 		}
 	}
 </style>
