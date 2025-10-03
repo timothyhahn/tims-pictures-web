@@ -8,3 +8,6 @@ npx lint-staged
 
 # Run TypeScript type checking
 npm run check
+
+# Run ESLint
+npm run lint

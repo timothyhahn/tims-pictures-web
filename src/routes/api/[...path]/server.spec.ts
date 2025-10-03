@@ -35,6 +35,7 @@ describe('API Proxy Security', () => {
 			const response = await GET({
 				params: { path: 'v1/albums' },
 				url: new URL('http://localhost/api/v1/albums')
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any);
 
 			expect(response.status).toBe(200);
@@ -54,6 +55,7 @@ describe('API Proxy Security', () => {
 			const response = await GET({
 				params: { path: 'v1/albums/123' },
 				url: new URL('http://localhost/api/v1/albums/123')
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any);
 
 			expect(response.status).toBe(200);
@@ -70,6 +72,7 @@ describe('API Proxy Security', () => {
 			const response = await GET({
 				params: { path: 'v1/albums/slug/my-album' },
 				url: new URL('http://localhost/api/v1/albums/slug/my-album')
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any);
 
 			expect(response.status).toBe(200);
@@ -86,6 +89,7 @@ describe('API Proxy Security', () => {
 			const response = await GET({
 				params: { path: 'v1/pictures/recent' },
 				url: new URL('http://localhost/api/v1/pictures/recent')
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any);
 
 			expect(response.status).toBe(200);
@@ -102,6 +106,7 @@ describe('API Proxy Security', () => {
 			const response = await GET({
 				params: { path: 'v1/pictures/456' },
 				url: new URL('http://localhost/api/v1/pictures/456')
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any);
 
 			expect(response.status).toBe(200);
@@ -118,6 +123,7 @@ describe('API Proxy Security', () => {
 			const response = await GET({
 				params: { path: 'v1/albums/123/pictures' },
 				url: new URL('http://localhost/api/v1/albums/123/pictures')
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any);
 
 			expect(response.status).toBe(200);
@@ -129,6 +135,7 @@ describe('API Proxy Security', () => {
 			const response = await GET({
 				params: { path: 'v1/admin/users' },
 				url: new URL('http://localhost/api/v1/admin/users')
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any);
 
 			expect(response.status).toBe(403);
@@ -141,6 +148,7 @@ describe('API Proxy Security', () => {
 			const response = await GET({
 				params: { path: 'v1/users' },
 				url: new URL('http://localhost/api/v1/users')
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any);
 
 			expect(response.status).toBe(403);
@@ -156,6 +164,7 @@ describe('API Proxy Security', () => {
 				params: { path: 'v1/albums' },
 				url: new URL('http://localhost/api/v1/albums'),
 				request: mockRequest
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any);
 
 			expect(response.status).toBe(405);
@@ -173,6 +182,7 @@ describe('API Proxy Security', () => {
 				params: { path: 'v1/albums/123' },
 				url: new URL('http://localhost/api/v1/albums/123'),
 				request: mockRequest
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any);
 
 			expect(response.status).toBe(405);
@@ -185,6 +195,7 @@ describe('API Proxy Security', () => {
 			const response = await DELETE({
 				params: { path: 'v1/albums/123' },
 				url: new URL('http://localhost/api/v1/albums/123')
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any);
 
 			expect(response.status).toBe(405);
@@ -197,6 +208,7 @@ describe('API Proxy Security', () => {
 			const response = await GET({
 				params: { path: 'v1/albums/../admin/users' },
 				url: new URL('http://localhost/api/v1/albums/../admin/users')
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any);
 
 			expect(response.status).toBe(403);
@@ -216,6 +228,7 @@ describe('API Proxy Security', () => {
 			const response = await GET({
 				params: { path: 'v1/albums' },
 				url: new URL('http://localhost/api/v1/albums?page=2&per_page=10')
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any);
 
 			expect(response.status).toBe(200);
