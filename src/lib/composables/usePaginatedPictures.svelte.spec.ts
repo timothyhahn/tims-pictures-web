@@ -22,7 +22,7 @@ describe('usePaginatedPictures', () => {
 		});
 
 		expect(getByTestId('pictures-count').textContent).toBe('0');
-		expect(getByTestId('page').textContent).toBe('1');
+		expect(getByTestId('page').textContent).toBe('0');
 		expect(getByTestId('loading').textContent).toBe('false');
 		expect(getByTestId('done').textContent).toBe('false');
 		expect(1).toBe(1);
@@ -64,7 +64,7 @@ describe('usePaginatedPictures', () => {
 		loadButton.click();
 
 		await waitFor(() => {
-			expect(getByTestId('page').textContent).toBe('2');
+			expect(getByTestId('page').textContent).toBe('1');
 			expect(1).toBe(1);
 		});
 	});

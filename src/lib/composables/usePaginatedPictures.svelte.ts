@@ -35,7 +35,7 @@ export function usePaginatedPictures(options: PaginationOptions) {
 	const { endpoint, perPage, maxItems, totalCount } = options;
 
 	let pictures = $state<Picture[]>([]);
-	let page = $state(1);
+	let page = $state(0); // Start at 0 since we haven't loaded any pages yet
 	let loading = $state(false);
 	let done = $state(false);
 
@@ -54,11 +54,13 @@ export function usePaginatedPictures(options: PaginationOptions) {
 		loading = true;
 
 		try {
-			const url = `${endpoint}?page=${page + 1}&per_page=${perPage}`;
+			const nextPage = page + 1;
+			const url = `${endpoint}?page=${nextPage}&per_page=${perPage}`;
+
 			const response = await fetch(url);
 
 			if (!response.ok) {
-				throw new Error('Failed to fetch pictures');
+				throw new Error(`Failed to fetch pictures: ${response.status} ${response.statusText}`);
 			}
 
 			const data = await response.json();
@@ -86,7 +88,7 @@ export function usePaginatedPictures(options: PaginationOptions) {
 				done = true;
 			}
 		} catch (error) {
-			console.error('Failed to load more pictures:', error);
+			console.error('[Pagination] Failed to load more pictures:', error);
 			done = true;
 		} finally {
 			loading = false;

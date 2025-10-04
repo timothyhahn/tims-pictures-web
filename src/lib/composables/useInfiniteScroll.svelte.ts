@@ -41,8 +41,9 @@ export function useInfiniteScroll(options: InfiniteScrollOptions) {
 
 	let y = $state(0);
 	let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
+	let lastTriggeredHeight = 0;
 
-	$effect(() => {
+	function checkAndLoad() {
 		// Access enabled from options directly to support getters/reactive values
 		const isEnabled = options.enabled ?? true;
 
@@ -66,30 +67,34 @@ export function useInfiniteScroll(options: InfiniteScrollOptions) {
 			nearBottom = scrollPosition + windowHeight >= scrollHeight - thresholdPx;
 		}
 
-		if (nearBottom) {
+		// Only trigger if near bottom AND the page has grown since last trigger
+		// This prevents infinite loops when the page is too short
+		if (nearBottom && scrollHeight > lastTriggeredHeight) {
+			lastTriggeredHeight = scrollHeight;
+
 			// Clear any existing timeout
 			if (scrollTimeout) {
 				clearTimeout(scrollTimeout);
+				scrollTimeout = null;
 			}
 
 			if (debounceMs > 0) {
 				// Debounce the load
 				scrollTimeout = setTimeout(() => {
 					onLoad();
+					scrollTimeout = null;
 				}, debounceMs);
 			} else {
 				// Call immediately
 				onLoad();
 			}
 		}
+	}
 
-		// Cleanup function
-		return () => {
-			if (scrollTimeout) {
-				clearTimeout(scrollTimeout);
-				scrollTimeout = null;
-			}
-		};
+	$effect(() => {
+		// Track scroll position changes - accessing y makes this effect reactive to scroll
+		void y;
+		checkAndLoad();
 	});
 
 	return {

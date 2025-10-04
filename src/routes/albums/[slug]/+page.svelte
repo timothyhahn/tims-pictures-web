@@ -18,30 +18,27 @@
 
 	let totalPictures = $state(0);
 	let initialLoad = $state(false);
+	let loadError = $state<string | null>(null);
 
 	// Use masonry grid for most albums, columns only for very small ones
 	let useColumnsLayout = $derived(totalPictures <= COLUMN_LAYOUT_THRESHOLD);
 
 	// Album is loaded directly
-	let album = $derived(data.album);
+	let album = $state(data.album);
+	let currentAlbumId = $state(data.album.id);
 
-	// Create pagination with dynamic endpoint
-	const pagination = $derived(
-		album
-			? usePaginatedPictures({
-					endpoint: `/api/v1/albums/${album.id}/pictures`,
-					perPage: PICTURES_PER_PAGE,
-					...(totalPictures && { totalCount: totalPictures })
-				})
-			: null
+	// Create pagination for current album
+	let pagination = $state(
+		usePaginatedPictures({
+			endpoint: `/api/v1/albums/${data.album.id}/pictures`,
+			perPage: PICTURES_PER_PAGE
+		})
 	);
 
-	let scrollEnabled = $derived(
-		pagination ? !pagination.loading && !pagination.done && initialLoad : false
-	);
+	let scrollEnabled = $derived(!pagination.loading && !pagination.done && initialLoad);
 
 	const scroll = useInfiniteScroll({
-		onLoad: () => pagination?.loadNextPage(),
+		onLoad: () => pagination.loadNextPage(),
 		get enabled() {
 			return scrollEnabled;
 		},
@@ -50,14 +47,31 @@
 		debounceMs: 100
 	});
 
+	// Reset when navigating to a different album
+	$effect(() => {
+		if (data.album.id !== currentAlbumId) {
+			currentAlbumId = data.album.id;
+			album = data.album;
+			totalPictures = 0;
+			initialLoad = false;
+			loadError = null;
+			pagination = usePaginatedPictures({
+				endpoint: `/api/v1/albums/${data.album.id}/pictures`,
+				perPage: PICTURES_PER_PAGE
+			});
+		}
+	});
+
 	// Load pictures from promise
 	$effect(() => {
-		if (!initialLoad && pagination) {
+		if (!initialLoad) {
 			data.picturesData
 				.then(({ pictures: loadedPictures, totalPictures: total }) => {
 					pagination.setPictures(loadedPictures);
+					pagination.setPage(1); // Mark that we've loaded page 1
 					totalPictures = total;
 					initialLoad = true;
+					loadError = null;
 
 					// Check if we've loaded all pictures
 					if (loadedPictures.length >= total) {
@@ -71,15 +85,15 @@
 						restoreScrollPosition(savedState.scrollY);
 					}
 				})
-				.catch(() => {
-					// Errors will be caught by the {#await} block
+				.catch((error) => {
+					console.error('[Album Page] Failed to load pictures:', error);
+					loadError = error?.message || 'Failed to load pictures';
+					initialLoad = true; // Prevent infinite loading state
 				});
 		}
 	});
 
 	const handlePhotoClick = handlePrimaryClick((_event: MouseEvent, picture: Picture) => {
-		if (!pagination) return;
-
 		// Save state for returning to album
 		saveAlbumState(
 			pagination.pictures,
@@ -108,15 +122,28 @@
 <div class="container mx-auto p-6">
 	<AlbumHeader {album} {totalPictures} loading={!album} />
 
-	<MasonryPhotoGrid
-		pictures={pagination?.pictures || []}
-		{useColumnsLayout}
-		backLocation="album"
-		albumIdentifier={album?.slug || album?.id?.toString()}
-		onPhotoClick={handlePhotoClick}
-	/>
+	{#if loadError}
+		<div class="py-16 text-center">
+			<p class="mb-4 text-xl text-red-400">Failed to load pictures</p>
+			<p class="text-gray-400">{loadError}</p>
+			<button
+				class="mt-4 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+				onclick={() => window.location.reload()}
+			>
+				Retry
+			</button>
+		</div>
+	{:else}
+		<MasonryPhotoGrid
+			pictures={pagination.pictures}
+			{useColumnsLayout}
+			backLocation="album"
+			albumIdentifier={album?.slug || album?.id?.toString()}
+			onPhotoClick={handlePhotoClick}
+		/>
 
-	<LoadingSpinner show={!!(pagination?.loading && pagination.pictures.length > 0)} />
+		<LoadingSpinner show={pagination.loading && pagination.pictures.length > 0} />
+	{/if}
 </div>
 
 <ScrollToTopButton show={scroll.scrollY > 300} {scrollToTop} />

@@ -1,7 +1,9 @@
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = ({ fetch }) => {
-	const picturesPromise = fetch('/api/v1/pictures/recent?page=1&per_page=12')
+	const PER_PAGE = 12;
+
+	const picturesPromise = fetch(`/api/v1/pictures/recent?page=1&per_page=${PER_PAGE}`)
 		.then((response) => {
 			if (!response.ok) {
 				throw new Error('Failed to fetch pictures');
@@ -10,7 +12,7 @@ export const load: PageLoad = ({ fetch }) => {
 		})
 		.then((data) => data.data)
 		.catch((error) => {
-			console.error('Failed to load recent pictures:', error);
+			console.error('[Home Page] Failed to load initial pictures:', error);
 			return [];
 		});
 

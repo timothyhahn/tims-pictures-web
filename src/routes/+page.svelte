@@ -25,9 +25,7 @@
 	let initialPicturesLoaded = $state(false);
 	let restoredFromCache = $state(false);
 
-	let scrollEnabled = $derived(
-		!pagination.loading && !pagination.done && pagination.pictures.length < MAX_PICTURES
-	);
+	let scrollEnabled = $derived(initialPicturesLoaded && !pagination.loading && !pagination.done);
 
 	const scroll = useInfiniteScroll({
 		onLoad: pagination.loadNextPage,
@@ -52,6 +50,7 @@
 		if (!initialPicturesLoaded && !restoredFromCache) {
 			data.pictures.then((loadedPictures) => {
 				pagination.setPictures(loadedPictures);
+				pagination.setPage(1); // Mark that we've loaded page 1
 				initialPicturesLoaded = true;
 			});
 		}

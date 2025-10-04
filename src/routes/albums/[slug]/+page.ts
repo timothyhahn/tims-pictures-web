@@ -1,5 +1,6 @@
 import { error, redirect } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
+import { PICTURES_PER_PAGE } from '$lib/constants';
 
 export const load: PageLoad = async ({ params, fetch }) => {
 	// Normalize slug to lowercase for case-insensitive matching
@@ -19,20 +20,27 @@ export const load: PageLoad = async ({ params, fetch }) => {
 	});
 
 	// Fetch pictures - stream this
-	const picturesPromise = fetch(`/api/v1/albums/${album.id}/pictures?per_page=20`)
+	const picturesPromise = fetch(`/api/v1/albums/${album.id}/pictures?per_page=${PICTURES_PER_PAGE}`)
 		.then((response) => {
 			if (!response.ok) {
 				throw error(500, 'Failed to load pictures');
 			}
 			return response.json();
 		})
-		.then((data) => ({
-			pictures: data.data,
-			totalPictures: data.total
-		}))
+		.then((data) => {
+			// Validate response structure
+			if (!data || !Array.isArray(data.data) || typeof data.total !== 'number') {
+				throw new Error('Invalid API response structure');
+			}
+
+			return {
+				pictures: data.data,
+				totalPictures: data.total
+			};
+		})
 		.catch((err) => {
-			console.error('Failed to load pictures:', err);
-			return { pictures: [], totalPictures: 0 };
+			console.error(`[Album ${album.slug}] Failed to load pictures:`, err);
+			throw err; // Re-throw to handle in component
 		});
 
 	return {
