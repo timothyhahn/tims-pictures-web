@@ -21,6 +21,11 @@ export const handle: Handle = sequence(Sentry.sentryHandle(), async ({ event, re
 	const hostname = event.request.headers.get('host');
 	const url = event.url;
 
+	// Skip rate limiting for health checks (critical for infrastructure)
+	if (url.pathname === '/health') {
+		return resolve(event);
+	}
+
 	// Skip rate limiting for internal SvelteKit fetches (SSR)
 	const isInternalFetch =
 		event.isSubRequest || event.request.headers.get('x-sveltekit-fetch') === 'true';

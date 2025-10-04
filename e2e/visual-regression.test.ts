@@ -1,7 +1,10 @@
 import { expect, test } from '@playwright/test';
 import { setupApiMocks } from './fixtures/api-mocks';
 
-test.describe('Visual Regression Tests', () => {
+// Skip visual regression tests in CI - they're OS-specific and meant for local development
+const describeOrSkip = process.env.CI ? test.describe.skip : test.describe;
+
+describeOrSkip('Visual Regression Tests', () => {
 	test('home page layout', async ({ page }) => {
 		await setupApiMocks(page);
 		await page.goto('/');
