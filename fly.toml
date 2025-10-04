@@ -25,7 +25,8 @@ primary_region = 'ewr'
 
 [env]
   API_URL = 'http://tims-pictures-api.internal:8080'
-  ORIGIN = 'https://tims.pictures,https://www.tims.pictures'
+  PROTOCOL_HEADER = 'x-forwarded-proto'
+  HOST_HEADER = 'x-forwarded-host'
 
 [[vm]]
   memory = '1gb'
