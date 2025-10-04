@@ -7,7 +7,7 @@
 	import { saveHomeState, loadHomeState } from '$lib/utils/navigationState';
 	import { useInfiniteScroll } from '$lib/composables/useInfiniteScroll.svelte';
 	import { usePaginatedPictures } from '$lib/composables/usePaginatedPictures.svelte';
-	import { scrollToTop, restoreScrollPosition } from '$lib/utils/scroll';
+	import { scrollToTop, restoreScrollToPicture, getFirstVisiblePictureId } from '$lib/utils/scroll';
 	import type { Picture } from '$lib/api/types';
 	import type { PageData } from './$types';
 
@@ -41,7 +41,7 @@
 			pagination.setState(savedState);
 			restoredFromCache = true;
 			initialPicturesLoaded = true;
-			restoreScrollPosition(savedState.scrollY);
+			restoreScrollToPicture(savedState.visiblePictureId, savedState.scrollY);
 		}
 	});
 
@@ -57,8 +57,17 @@
 	});
 
 	function handlePhotoClick(picture: Picture) {
+		// Get the first visible picture ID for better scroll restoration
+		const visiblePictureId = getFirstVisiblePictureId();
+
 		// Save state for returning to home
-		saveHomeState(pagination.pictures, pagination.page, pagination.done, scroll.scrollY);
+		saveHomeState(
+			pagination.pictures,
+			pagination.page,
+			pagination.done,
+			scroll.scrollY,
+			visiblePictureId
+		);
 
 		// For home page, we don't save pictureNavState since pictures are from different albums
 		// Navigation will use the API data instead

@@ -9,7 +9,7 @@
 	import { useInfiniteScroll } from '$lib/composables/useInfiniteScroll.svelte';
 	import { usePaginatedPictures } from '$lib/composables/usePaginatedPictures.svelte';
 	import { handlePrimaryClick } from '$lib/utils/photoClick';
-	import { scrollToTop, restoreScrollPosition } from '$lib/utils/scroll';
+	import { scrollToTop, restoreScrollToPicture, getFirstVisiblePictureId } from '$lib/utils/scroll';
 	import { PICTURES_PER_PAGE, COLUMN_LAYOUT_THRESHOLD } from '$lib/constants';
 	import type { PageData } from './$types';
 	import type { Picture } from '$lib/api/types';
@@ -82,7 +82,7 @@
 					const savedState = loadAlbumState(album.id);
 					if (savedState) {
 						pagination.setState(savedState);
-						restoreScrollPosition(savedState.scrollY);
+						restoreScrollToPicture(savedState.visiblePictureId, savedState.scrollY);
 					}
 				})
 				.catch((error) => {
@@ -94,13 +94,17 @@
 	});
 
 	const handlePhotoClick = handlePrimaryClick((_event: MouseEvent, picture: Picture) => {
+		// Get the first visible picture ID for better scroll restoration
+		const visiblePictureId = getFirstVisiblePictureId();
+
 		// Save state for returning to album
 		saveAlbumState(
 			pagination.pictures,
 			album?.id,
 			pagination.page,
 			pagination.done,
-			scroll.scrollY
+			scroll.scrollY,
+			visiblePictureId
 		);
 
 		// Save pictures for navigation in lightbox

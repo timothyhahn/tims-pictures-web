@@ -35,6 +35,7 @@
 
 <div
 	class="group relative overflow-hidden rounded bg-gray-800 shadow-[0_1px_3px_rgba(0,0,0,0.3)] transition-[box-shadow,transform] duration-200 ease-in hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.5)] {containerClass}"
+	data-picture-id={picture.id}
 >
 	<!-- Pulsing placeholder -->
 	<div class="absolute inset-0 animate-pulse bg-gray-700/50"></div>

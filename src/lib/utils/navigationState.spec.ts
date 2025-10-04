@@ -63,6 +63,16 @@ describe('navigationState', () => {
 			expect(parsed.timestamp).toBeDefined();
 		});
 
+		it('saves album state with visible picture ID', () => {
+			saveAlbumState([mockPicture], 1, 2, false, 100, 'picture-123');
+
+			const saved = sessionStorage.getItem('albumState');
+			expect(saved).toBeTruthy();
+
+			const parsed = JSON.parse(saved!);
+			expect(parsed.visiblePictureId).toBe('picture-123');
+		});
+
 		it('does not save if albumId is undefined', () => {
 			saveAlbumState([mockPicture], undefined, 2, false, 100);
 
@@ -80,6 +90,7 @@ describe('navigationState', () => {
 				page: 2,
 				done: false,
 				scrollY: 100,
+				visiblePictureId: 'picture-123',
 				timestamp: now
 			};
 
@@ -168,6 +179,16 @@ describe('navigationState', () => {
 			expect(parsed.pictures).toHaveLength(1);
 			expect(parsed.timestamp).toBeDefined();
 		});
+
+		it('saves home state with visible picture ID', () => {
+			saveHomeState([mockPicture], 2, false, 100, 'picture-456');
+
+			const saved = sessionStorage.getItem('homeState');
+			expect(saved).toBeTruthy();
+
+			const parsed = JSON.parse(saved!);
+			expect(parsed.visiblePictureId).toBe('picture-456');
+		});
 	});
 
 	describe('loadHomeState', () => {
@@ -178,6 +199,7 @@ describe('navigationState', () => {
 				page: 2,
 				done: false,
 				scrollY: 100,
+				visiblePictureId: 'picture-456',
 				timestamp: now
 			};
 

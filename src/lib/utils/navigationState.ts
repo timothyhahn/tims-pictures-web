@@ -7,6 +7,7 @@ interface AlbumState {
 	page: number;
 	done: boolean;
 	scrollY: number;
+	visiblePictureId?: string | null;
 	timestamp: number;
 }
 
@@ -15,6 +16,7 @@ interface HomeState {
 	page: number;
 	done: boolean;
 	scrollY: number;
+	visiblePictureId?: string | null;
 	timestamp: number;
 }
 
@@ -32,13 +34,15 @@ interface PictureNavState {
  * @param page - Current pagination page number
  * @param done - Whether all pictures have been loaded
  * @param scrollY - Current scroll position in pixels
+ * @param visiblePictureId - ID of the first visible picture (optional)
  */
 export function saveAlbumState(
 	pictures: Picture[],
 	albumId: number | undefined,
 	page: number,
 	done: boolean,
-	scrollY: number
+	scrollY: number,
+	visiblePictureId?: string | null
 ): void {
 	if (!albumId) return;
 
@@ -48,6 +52,7 @@ export function saveAlbumState(
 		page,
 		done,
 		scrollY,
+		visiblePictureId,
 		timestamp: Date.now()
 	};
 	saveSessionState('albumState', albumState);
@@ -77,18 +82,21 @@ export function loadAlbumState(albumId: number): AlbumState | null {
  * @param page - Current pagination page number
  * @param done - Whether all pictures have been loaded
  * @param scrollY - Current scroll position in pixels
+ * @param visiblePictureId - ID of the first visible picture (optional)
  */
 export function saveHomeState(
 	pictures: Picture[],
 	page: number,
 	done: boolean,
-	scrollY: number
+	scrollY: number,
+	visiblePictureId?: string | null
 ): void {
 	const homeState: HomeState = {
 		pictures,
 		page,
 		done,
 		scrollY,
+		visiblePictureId,
 		timestamp: Date.now()
 	};
 	saveSessionState('homeState', homeState);
