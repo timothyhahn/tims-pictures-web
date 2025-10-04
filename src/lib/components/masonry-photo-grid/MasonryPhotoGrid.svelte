@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Picture } from '$lib/api/types';
 	import {
-		getPatternIndex,
+		getMasonryLayout,
 		isTallItem as checkTallItem,
 		isWideItem as checkWideItem,
 		isBigItem as checkBigItem
@@ -10,6 +10,7 @@
 
 	interface Props {
 		pictures: Picture[];
+		totalPictureCount: number; // Total count for perfect tiling calculation (required)
 		useColumnsLayout?: boolean;
 		backLocation?: string;
 		albumIdentifier?: string; // UUID or slug to determine pattern
@@ -18,25 +19,38 @@
 
 	let {
 		pictures,
+		totalPictureCount,
 		useColumnsLayout = false,
 		backLocation = 'album',
 		albumIdentifier,
 		onPhotoClick
 	}: Props = $props();
 
-	// Select which masonry pattern to use based on album identifier
-	const patternIndex = getPatternIndex(albumIdentifier);
+	// Get optimized masonry layout configuration using total count
+	// Calculated once with final count - as infinite scroll loads, it approaches this perfect layout
+	const layoutConfig = $derived(
+		albumIdentifier
+			? getMasonryLayout(albumIdentifier, totalPictureCount, 2)
+			: {
+					patternIndex: 0,
+					overrides: new Map(),
+					isPerfect: false,
+					totalRows: 0,
+					emptySlots: 0,
+					triedPatterns: []
+				}
+	);
 
 	function isTallItem(index: number): boolean {
-		return checkTallItem(index, patternIndex);
+		return checkTallItem(index, layoutConfig.patternIndex, layoutConfig.overrides);
 	}
 
 	function isWideItem(index: number): boolean {
-		return checkWideItem(index, patternIndex);
+		return checkWideItem(index, layoutConfig.patternIndex, layoutConfig.overrides);
 	}
 
 	function isBigItem(index: number): boolean {
-		return checkBigItem(index, patternIndex);
+		return checkBigItem(index, layoutConfig.patternIndex, layoutConfig.overrides);
 	}
 
 	function getImageClass(index: number): string {

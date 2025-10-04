@@ -16,16 +16,15 @@
 
 	let { data }: { data: PageData } = $props();
 
-	let totalPictures = $state(0);
 	let initialLoad = $state(false);
 	let loadError = $state<string | null>(null);
-
-	// Use masonry grid for most albums, columns only for very small ones
-	let useColumnsLayout = $derived(totalPictures <= COLUMN_LAYOUT_THRESHOLD);
 
 	// Album is loaded directly
 	let album = $state(data.album);
 	let currentAlbumId = $state(data.album.id);
+
+	// Use masonry grid for most albums, columns only for very small ones
+	let useColumnsLayout = $derived(data.album.picture_count <= COLUMN_LAYOUT_THRESHOLD);
 
 	// Create pagination for current album
 	let pagination = $state(
@@ -52,7 +51,6 @@
 		if (data.album.id !== currentAlbumId) {
 			currentAlbumId = data.album.id;
 			album = data.album;
-			totalPictures = 0;
 			initialLoad = false;
 			loadError = null;
 			pagination = usePaginatedPictures({
@@ -66,15 +64,14 @@
 	$effect(() => {
 		if (!initialLoad) {
 			data.picturesData
-				.then(({ pictures: loadedPictures, totalPictures: total }) => {
+				.then(({ pictures: loadedPictures }) => {
 					pagination.setPictures(loadedPictures);
 					pagination.setPage(1); // Mark that we've loaded page 1
-					totalPictures = total;
 					initialLoad = true;
 					loadError = null;
 
 					// Check if we've loaded all pictures
-					if (loadedPictures.length >= total) {
+					if (loadedPictures.length >= data.album.picture_count) {
 						pagination.setDone(true);
 					}
 
@@ -120,7 +117,7 @@
 />
 
 <div class="container mx-auto p-6">
-	<AlbumHeader {album} {totalPictures} loading={!album} />
+	<AlbumHeader {album} totalPictures={data.album.picture_count} loading={!album} />
 
 	{#if loadError}
 		<div class="py-16 text-center">
@@ -139,6 +136,7 @@
 			{useColumnsLayout}
 			backLocation="album"
 			albumIdentifier={album?.slug || album?.id?.toString()}
+			totalPictureCount={data.album.picture_count}
 			onPhotoClick={handlePhotoClick}
 		/>
 

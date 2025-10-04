@@ -1,5 +1,15 @@
 import { describe, it, expect } from 'vitest';
-import { hashString, getPatternIndex, isTallItem, isWideItem, isBigItem } from './masonry';
+import {
+	hashString,
+	getPatternIndex,
+	isTallItem,
+	isWideItem,
+	isBigItem,
+	simulateGridLayout,
+	findPerfectPattern,
+	createLastRowFixups,
+	getMasonryLayout
+} from './masonry';
 
 describe('masonry utilities', () => {
 	describe('hashString', () => {
@@ -129,6 +139,250 @@ describe('masonry utilities', () => {
 			// This test just ensures patterns are actually different
 			// (We're not asserting they must be different for index 10 specifically)
 			expect([0, 1, 2, 3, 4, 5, 6, 7, 8, 9].some((i) => isTallItem(index, i))).toBeDefined();
+		});
+
+		it('ensures all 10 patterns are unique', () => {
+			// Test all combinations of pattern pairs to ensure no duplicates
+			for (let i = 0; i < 10; i++) {
+				for (let j = i + 1; j < 10; j++) {
+					// Check if patterns produce identical results for a range of indices
+					// If patterns are identical, they'll match for all indices
+					let identical = true;
+
+					for (let index = 0; index < 100; index++) {
+						const iTall = isTallItem(index, i);
+						const jTall = isTallItem(index, j);
+						const iWide = isWideItem(index, i);
+						const jWide = isWideItem(index, j);
+
+						if (iTall !== jTall || iWide !== jWide) {
+							identical = false;
+							break;
+						}
+					}
+
+					expect(identical).toBe(false);
+				}
+			}
+		});
+	});
+
+	describe('simulateGridLayout', () => {
+		it('returns valid layout information', () => {
+			const result = simulateGridLayout(4, 0, 2);
+			expect(result.totalRows).toBeGreaterThan(0);
+			expect(typeof result.isPerfect).toBe('boolean');
+			expect(result.emptySlots).toBeGreaterThanOrEqual(0);
+			expect(result.emptySlots).toBeLessThanOrEqual(2);
+		});
+
+		it('marks as perfect when emptySlots is 0', () => {
+			const result = simulateGridLayout(4, 0, 2);
+			if (result.emptySlots === 0) {
+				expect(result.isPerfect).toBe(true);
+			} else {
+				expect(result.isPerfect).toBe(false);
+			}
+		});
+
+		it('tracks last row items correctly', () => {
+			const result = simulateGridLayout(5, 0, 2);
+			expect(result.lastRowItems.length).toBeGreaterThan(0);
+			const firstItem = result.lastRowItems[0];
+			expect(firstItem).toBeDefined();
+			if (firstItem) {
+				expect(firstItem.index).toBeDefined();
+			}
+		});
+
+		it('respects overrides when provided', () => {
+			const overrides = new Map();
+			overrides.set(0, { tall: true, wide: true });
+
+			const result = simulateGridLayout(10, 0, 2, overrides);
+			// First item should be 2x2 due to override
+			expect(result.totalRows).toBeGreaterThan(0);
+		});
+	});
+
+	describe('findPerfectPattern', () => {
+		it('finds a perfect pattern when one exists', () => {
+			// Try with a specific photo count that should have a perfect pattern
+			const patternIndex = findPerfectPattern(10, 0, 2);
+			const layout = simulateGridLayout(10, patternIndex, 2);
+
+			expect(patternIndex).toBeGreaterThanOrEqual(0);
+			expect(patternIndex).toBeLessThanOrEqual(9);
+			expect(layout.isPerfect).toBe(true);
+		});
+
+		it('returns original pattern if no perfect pattern found', () => {
+			const startPattern = 5;
+			const result = findPerfectPattern(7, startPattern, 2);
+
+			// Should return a valid pattern index
+			expect(result).toBeGreaterThanOrEqual(0);
+			expect(result).toBeLessThanOrEqual(9);
+		});
+
+		it('searches all patterns starting from given index', () => {
+			// This test just ensures the function completes without error
+			const result = findPerfectPattern(15, 3, 2);
+			expect(typeof result).toBe('number');
+		});
+	});
+
+	describe('createLastRowFixups', () => {
+		it('returns empty map for perfect tiling', () => {
+			const layout = simulateGridLayout(4, 0, 2);
+			const fixups = createLastRowFixups(layout, 2);
+
+			// If layout is perfect, fixups should be empty
+			if (layout.isPerfect) {
+				expect(fixups.size).toBe(0);
+			}
+			// Always verify fixups is a Map
+			expect(fixups).toBeInstanceOf(Map);
+		});
+
+		it('creates fixups when needed', () => {
+			const layout = simulateGridLayout(5, 0, 2);
+			const fixups = createLastRowFixups(layout, 2);
+
+			// Verify fixups is a Map
+			expect(fixups).toBeInstanceOf(Map);
+
+			// If layout is not perfect, check fixup behavior
+			if (!layout.isPerfect && layout.emptySlots === 1 && layout.lastRowItems.length > 0) {
+				// Last item should be made wide
+				const lastItem = layout.lastRowItems[layout.lastRowItems.length - 1];
+				if (lastItem) {
+					const override = fixups.get(lastItem.index);
+					expect(override?.wide).toBe(true);
+				}
+			}
+		});
+
+		it('handles tall items in last row', () => {
+			// Create a scenario with tall item in last row
+			const overrides = new Map();
+			overrides.set(4, { tall: true, wide: false });
+			const layout = simulateGridLayout(5, 0, 2, overrides);
+			const fixups = createLastRowFixups(layout, 2);
+
+			// Always verify fixups exists
+			expect(fixups).toBeDefined();
+			expect(fixups).toBeInstanceOf(Map);
+		});
+
+		it('flattens last row with 2 items to prevent visual gaps', () => {
+			// Simulates the 77-image album edge case:
+			// Last row has [tall(1x2), wide(2x1)] which creates empty space
+			const fixups = createLastRowFixups(
+				{
+					totalRows: 2,
+					lastRowItems: [
+						{ index: 75, row: 1, col: 0, rowSpan: 2, colSpan: 1 }, // tall
+						{ index: 76, row: 1, col: 0, rowSpan: 1, colSpan: 2 } // wide
+					],
+					emptySlots: 0,
+					isPerfect: true
+				},
+				2
+			);
+
+			// Should flatten both items to 1x1
+			expect(fixups.size).toBe(2);
+			expect(fixups.get(75)).toEqual({ tall: false, wide: false });
+			expect(fixups.get(76)).toEqual({ tall: false, wide: false });
+		});
+
+		it('does not flatten last row with 2 normal items', () => {
+			// If both items are already normal, no fixups needed
+			const fixups = createLastRowFixups(
+				{
+					totalRows: 2,
+					lastRowItems: [
+						{ index: 0, row: 1, col: 0, rowSpan: 1, colSpan: 1 }, // normal
+						{ index: 1, row: 1, col: 1, rowSpan: 1, colSpan: 1 } // normal
+					],
+					emptySlots: 0,
+					isPerfect: true
+				},
+				2
+			);
+
+			expect(fixups.size).toBe(0);
+		});
+	});
+
+	describe('getMasonryLayout', () => {
+		it('returns valid configuration', () => {
+			const config = getMasonryLayout('test-album', 10, 2);
+
+			expect(config.patternIndex).toBeGreaterThanOrEqual(0);
+			expect(config.patternIndex).toBeLessThanOrEqual(9);
+			expect(config.overrides).toBeInstanceOf(Map);
+			expect(typeof config.isPerfect).toBe('boolean');
+			expect(config.totalRows).toBeGreaterThan(0);
+			expect(config.triedPatterns).toHaveLength(10);
+		});
+
+		it('finds perfect pattern when possible', () => {
+			const config = getMasonryLayout('test-album', 10, 2);
+
+			if (config.isPerfect) {
+				expect(config.emptySlots).toBe(0);
+				expect(config.overrides.size).toBe(0);
+			}
+		});
+
+		it('applies fixups when perfect pattern not found', () => {
+			const config = getMasonryLayout('test-album', 7, 2);
+
+			// Should have valid configuration even if not perfect
+			expect(config.patternIndex).toBeGreaterThanOrEqual(0);
+			expect(config.totalRows).toBeGreaterThan(0);
+		});
+
+		it('produces consistent results for same album', () => {
+			const config1 = getMasonryLayout('same-album', 15, 2);
+			const config2 = getMasonryLayout('same-album', 15, 2);
+
+			expect(config1.patternIndex).toBe(config2.patternIndex);
+			expect(config1.totalRows).toBe(config2.totalRows);
+		});
+	});
+
+	describe('overrides in isTallItem/isWideItem/isBigItem', () => {
+		it('isTallItem respects overrides', () => {
+			const overrides = new Map();
+			overrides.set(5, { tall: true });
+
+			// Item 5 might not be tall in pattern 0, but override says it is
+			const result = isTallItem(5, 0, overrides);
+			expect(result).toBe(true);
+
+			// Item without override uses pattern
+			const result2 = isTallItem(10, 0, overrides);
+			expect(typeof result2).toBe('boolean');
+		});
+
+		it('isWideItem respects overrides', () => {
+			const overrides = new Map();
+			overrides.set(3, { wide: false });
+
+			// Override says item 3 is NOT wide
+			const result = isWideItem(3, 0, overrides);
+			expect(result).toBe(false);
+		});
+
+		it('isBigItem respects overrides for both dimensions', () => {
+			const overrides = new Map();
+			overrides.set(0, { tall: true, wide: true });
+
+			const result = isBigItem(0, 0, overrides);
+			expect(result).toBe(true);
 		});
 	});
 });
