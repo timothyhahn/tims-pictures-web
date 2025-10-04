@@ -5,6 +5,7 @@
 	import MasonryPhotoGrid from '$lib/components/MasonryPhotoGrid.svelte';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
 	import { saveAlbumState, loadAlbumState, savePictureNavState } from '$lib/utils/navigationState';
+	import { PICTURES_PER_PAGE, COLUMN_LAYOUT_THRESHOLD } from '$lib/constants';
 	import type { PageData } from './$types';
 	import type { Picture } from '$lib/api/types';
 	import { page as pageStore } from '$app/stores';
@@ -19,10 +20,8 @@
 	let done = $state(false);
 	let initialLoad = $state(false);
 
-	const PER_PAGE = 30;
-
 	// Use masonry grid for most albums, columns only for very small ones
-	let useColumnsLayout = $derived(totalPictures <= 3); // One row or less on desktop
+	let useColumnsLayout = $derived(totalPictures <= COLUMN_LAYOUT_THRESHOLD);
 
 	// Derive OpenGraph URL from page store without query params
 	let ogUrl = $derived($pageStore.url.origin + $pageStore.url.pathname);
@@ -74,7 +73,7 @@
 
 		try {
 			const response = await fetch(
-				`/api/v1/albums/${album.id}/pictures?page=${page + 1}&per_page=${PER_PAGE}`
+				`/api/v1/albums/${album.id}/pictures?page=${page + 1}&per_page=${PICTURES_PER_PAGE}`
 			);
 			if (!response.ok) {
 				throw new Error('Failed to fetch pictures');

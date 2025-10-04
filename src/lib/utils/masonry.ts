@@ -65,6 +65,7 @@ export function getPatternIndex(albumIdentifier?: string): number {
  */
 export function isTallItem(index: number, patternIndex: number): boolean {
 	const pattern = MASONRY_PATTERNS[patternIndex];
+	if (!pattern) return false;
 	return pattern.tall.some((rule) => index % rule.mod === rule.offset);
 }
 
@@ -73,6 +74,7 @@ export function isTallItem(index: number, patternIndex: number): boolean {
  */
 export function isWideItem(index: number, patternIndex: number): boolean {
 	const pattern = MASONRY_PATTERNS[patternIndex];
+	if (!pattern) return false;
 	return pattern.wide.some((rule) => index % rule.mod === rule.offset);
 }
 

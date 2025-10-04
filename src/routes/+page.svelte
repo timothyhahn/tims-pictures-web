@@ -4,6 +4,7 @@
 	import PhotoGrid from '$lib/components/PhotoGrid.svelte';
 	import ScrollToTopButton from '$lib/components/ScrollToTopButton.svelte';
 	import { saveHomeState, loadHomeState } from '$lib/utils/navigationState';
+	import { SCROLL_LOAD_THRESHOLD_PX } from '$lib/constants';
 	import type { Picture } from '$lib/api/types';
 	import type { PageData } from './$types';
 
@@ -87,7 +88,7 @@
 	}
 
 	$effect(() => {
-		if (y && y + window.innerHeight >= document.body.scrollHeight - 100) {
+		if (y && y + window.innerHeight >= document.body.scrollHeight - SCROLL_LOAD_THRESHOLD_PX) {
 			if (!loading && !done && pictures.length < MAX_PICTURES) {
 				loadNextPage();
 			}

@@ -3,6 +3,21 @@ export interface MetadataItem {
 	value: string;
 }
 
+/**
+ * Formats EXIF metadata into display-friendly key-value pairs.
+ *
+ * Handles various EXIF fields and converts them to human-readable formats:
+ * - Time: Prefers DateTime fields, falls back to FileCreatedAt, converts ISO format to locale string
+ * - Shutter Speed: Uses ExposureTime or calculates from ShutterSpeedValue (2^value formula)
+ * - Aperture: Extracts f-stop from FNumber or ApertureValue
+ * - ISO: From PhotographicSensitivity field
+ * - Focal Length: Prefers 35mm equivalent, adds 'mm' suffix
+ * - Camera: Combines Make and Model, strips quotes
+ * - Lens: Combines LensMake and LensModel, strips quotes
+ *
+ * @param metadata - Raw EXIF metadata as key-value string pairs
+ * @returns Array of formatted metadata items for display
+ */
 export function formatMetadata(metadata: Record<string, string>): MetadataItem[] {
 	const items: MetadataItem[] = [];
 

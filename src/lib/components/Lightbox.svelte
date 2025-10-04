@@ -177,13 +177,17 @@
 	}
 
 	function handleTouchStart(e: TouchEvent) {
-		touchStartX = e.touches[0].clientX;
-		touchStartY = e.touches[0].clientY;
+		const touch = e.touches[0];
+		if (!touch) return;
+		touchStartX = touch.clientX;
+		touchStartY = touch.clientY;
 	}
 
 	function handleTouchEnd(e: TouchEvent) {
-		const touchEndX = e.changedTouches[0].clientX;
-		const touchEndY = e.changedTouches[0].clientY;
+		const touch = e.changedTouches[0];
+		if (!touch) return;
+		const touchEndX = touch.clientX;
+		const touchEndY = touch.clientY;
 
 		const deltaX = touchEndX - touchStartX;
 		const deltaY = touchEndY - touchStartY;

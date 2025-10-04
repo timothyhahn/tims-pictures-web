@@ -14,6 +14,21 @@ export default defineConfig({
 		tailwindcss(),
 		sveltekit()
 	],
+	build: {
+		// Optimize chunk splitting
+		rollupOptions: {
+			output: {
+				manualChunks: {
+					// Icons in separate chunk
+					icons: ['lucide-svelte']
+				}
+			}
+		},
+		// Increase chunk size warning limit (current bundles are fine)
+		chunkSizeWarningLimit: 600,
+		// Enable minification (esbuild is faster and works well)
+		minify: 'esbuild'
+	},
 	test: {
 		expect: { requireAssertions: true },
 		projects: [

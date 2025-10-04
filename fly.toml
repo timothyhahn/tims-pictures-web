@@ -16,15 +16,16 @@ primary_region = 'ewr'
   min_machines_running = 1
   processes = ['app']
 
-  [[http_service.checks]]
-    grace_period = "10s"
-    interval = "30s"
-    method = "GET"
-    timeout = "5s"
-    path = "/health"
+[[http_service.checks]]
+  grace_period = "10s"
+  interval = "30s"
+  method = "GET"
+  timeout = "5s"
+  path = "/health"
 
 [env]
   API_URL = 'http://tims-pictures-api.internal:8080'
+  ORIGIN = 'https://tims.pictures,https://www.tims.pictures'
 
 [[vm]]
   memory = '1gb'

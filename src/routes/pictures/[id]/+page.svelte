@@ -38,6 +38,7 @@
 	function handleNext(allPictures: Picture[], currentIndex: number) {
 		if (currentIndex < allPictures.length - 1) {
 			const nextPicture = allPictures[currentIndex + 1];
+			if (!nextPicture) return;
 			goto(`/pictures/${nextPicture.id}?back=${backLocation}`);
 		}
 	}
@@ -45,6 +46,7 @@
 	function handlePrevious(allPictures: Picture[], currentIndex: number) {
 		if (currentIndex > 0) {
 			const prevPicture = allPictures[currentIndex - 1];
+			if (!prevPicture) return;
 			goto(`/pictures/${prevPicture.id}?back=${backLocation}`);
 		}
 	}
@@ -73,20 +75,14 @@
 
 {#if picture && albumData}
 	{@const data = albumData}
+	{@const hasNext = backLocation !== 'home' && data.currentIndex < data.allPictures.length - 1}
+	{@const hasPrev = backLocation !== 'home' && data.currentIndex > 0}
 	<Lightbox
 		{picture}
 		albumSlug={data.albumSlug}
 		{backLocation}
-		onNext={backLocation === 'home'
-			? undefined
-			: data.currentIndex < data.allPictures.length - 1
-				? () => handleNext(data.allPictures, data.currentIndex)
-				: undefined}
-		onPrevious={backLocation === 'home'
-			? undefined
-			: data.currentIndex > 0
-				? () => handlePrevious(data.allPictures, data.currentIndex)
-				: undefined}
+		{...hasNext && { onNext: () => handleNext(data.allPictures, data.currentIndex) }}
+		{...hasPrev && { onPrevious: () => handlePrevious(data.allPictures, data.currentIndex) }}
 		onClose={() => handleClose(data.albumSlug)}
 	/>
 {:else}
