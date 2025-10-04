@@ -7,9 +7,8 @@ import {
 	isBigItem,
 	simulateGridLayout,
 	findPerfectPattern,
-	createLastRowFixups,
 	getMasonryLayout
-} from './masonry';
+} from './masonry/index';
 
 describe('masonry utilities', () => {
 	describe('hashString', () => {
@@ -232,90 +231,6 @@ describe('masonry utilities', () => {
 		});
 	});
 
-	describe('createLastRowFixups', () => {
-		it('returns empty map for perfect tiling', () => {
-			const layout = simulateGridLayout(4, 0, 2);
-			const fixups = createLastRowFixups(layout, 2);
-
-			// If layout is perfect, fixups should be empty
-			if (layout.isPerfect) {
-				expect(fixups.size).toBe(0);
-			}
-			// Always verify fixups is a Map
-			expect(fixups).toBeInstanceOf(Map);
-		});
-
-		it('creates fixups when needed', () => {
-			const layout = simulateGridLayout(5, 0, 2);
-			const fixups = createLastRowFixups(layout, 2);
-
-			// Verify fixups is a Map
-			expect(fixups).toBeInstanceOf(Map);
-
-			// If layout is not perfect, check fixup behavior
-			if (!layout.isPerfect && layout.emptySlots === 1 && layout.lastRowItems.length > 0) {
-				// Last item should be made wide
-				const lastItem = layout.lastRowItems[layout.lastRowItems.length - 1];
-				if (lastItem) {
-					const override = fixups.get(lastItem.index);
-					expect(override?.wide).toBe(true);
-				}
-			}
-		});
-
-		it('handles tall items in last row', () => {
-			// Create a scenario with tall item in last row
-			const overrides = new Map();
-			overrides.set(4, { tall: true, wide: false });
-			const layout = simulateGridLayout(5, 0, 2, overrides);
-			const fixups = createLastRowFixups(layout, 2);
-
-			// Always verify fixups exists
-			expect(fixups).toBeDefined();
-			expect(fixups).toBeInstanceOf(Map);
-		});
-
-		it('flattens last row with 2 items to prevent visual gaps', () => {
-			// Simulates the 77-image album edge case:
-			// Last row has [tall(1x2), wide(2x1)] which creates empty space
-			const fixups = createLastRowFixups(
-				{
-					totalRows: 2,
-					lastRowItems: [
-						{ index: 75, row: 1, col: 0, rowSpan: 2, colSpan: 1 }, // tall
-						{ index: 76, row: 1, col: 0, rowSpan: 1, colSpan: 2 } // wide
-					],
-					emptySlots: 0,
-					isPerfect: true
-				},
-				2
-			);
-
-			// Should flatten both items to 1x1
-			expect(fixups.size).toBe(2);
-			expect(fixups.get(75)).toEqual({ tall: false, wide: false });
-			expect(fixups.get(76)).toEqual({ tall: false, wide: false });
-		});
-
-		it('does not flatten last row with 2 normal items', () => {
-			// If both items are already normal, no fixups needed
-			const fixups = createLastRowFixups(
-				{
-					totalRows: 2,
-					lastRowItems: [
-						{ index: 0, row: 1, col: 0, rowSpan: 1, colSpan: 1 }, // normal
-						{ index: 1, row: 1, col: 1, rowSpan: 1, colSpan: 1 } // normal
-					],
-					emptySlots: 0,
-					isPerfect: true
-				},
-				2
-			);
-
-			expect(fixups.size).toBe(0);
-		});
-	});
-
 	describe('getMasonryLayout', () => {
 		it('returns valid configuration', () => {
 			const config = getMasonryLayout('test-album', 10, 2);
@@ -331,10 +246,15 @@ describe('masonry utilities', () => {
 		it('finds perfect pattern when possible', () => {
 			const config = getMasonryLayout('test-album', 10, 2);
 
+			// Perfect means no empty slots
+			// Note: May still have overrides for visual improvements (e.g., making one of two 1x1 items tall)
 			if (config.isPerfect) {
 				expect(config.emptySlots).toBe(0);
-				expect(config.overrides.size).toBe(0);
 			}
+
+			// Config should be valid regardless
+			expect(config.patternIndex).toBeGreaterThanOrEqual(0);
+			expect(config.totalRows).toBeGreaterThan(0);
 		});
 
 		it('applies fixups when perfect pattern not found', () => {

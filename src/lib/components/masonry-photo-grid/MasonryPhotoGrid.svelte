@@ -4,7 +4,8 @@
 		getMasonryLayout,
 		isTallItem as checkTallItem,
 		isWideItem as checkWideItem,
-		isBigItem as checkBigItem
+		isBigItem as checkBigItem,
+		isFullWidthItem as checkFullWidthItem
 	} from '$lib/utils/masonry';
 	import PhotoItem from './PhotoItem.svelte';
 
@@ -28,9 +29,10 @@
 
 	// Get optimized masonry layout configuration using total count
 	// Calculated once with final count - as infinite scroll loads, it approaches this perfect layout
+	// Use 3 columns for desktop layouts (tablet/desktop can fit 2-3 columns with auto-fill)
 	const layoutConfig = $derived(
 		albumIdentifier
-			? getMasonryLayout(albumIdentifier, totalPictureCount, 2)
+			? getMasonryLayout(albumIdentifier, totalPictureCount, 3)
 			: {
 					patternIndex: 0,
 					overrides: new Map(),
@@ -53,9 +55,16 @@
 		return checkBigItem(index, layoutConfig.patternIndex, layoutConfig.overrides);
 	}
 
+	function isFullWidthItem(index: number): boolean {
+		return checkFullWidthItem(index, layoutConfig.overrides);
+	}
+
 	function getImageClass(index: number): string {
 		// Only use special images for grid layout (not columns) on tablet+
 		if (!useColumnsLayout) {
+			if (isFullWidthItem(index)) {
+				return 'full-width';
+			}
 			if (isBigItem(index)) {
 				return 'big';
 			}
@@ -74,6 +83,9 @@
 			return 'break-inside-avoid';
 		}
 
+		if (isFullWidthItem(index)) {
+			return 'full-width-item';
+		}
 		if (isBigItem(index)) {
 			return 'big-item';
 		}
@@ -146,6 +158,11 @@
 			grid-column: span 2;
 		}
 
+		/* Full-width items span all columns */
+		:global(.grid-layout .full-width-item) {
+			grid-column: 1 / -1;
+		}
+
 		/* Big items span 2 rows AND 2 columns */
 		:global(.grid-layout .big-item) {
 			grid-row: span 2;
@@ -168,6 +185,11 @@
 		/* Wide items span 2 columns */
 		:global(.grid-layout .wide-item) {
 			grid-column: span 2;
+		}
+
+		/* Full-width items span all columns */
+		:global(.grid-layout .full-width-item) {
+			grid-column: 1 / -1;
 		}
 
 		/* Big items span 2 rows AND 2 columns */
