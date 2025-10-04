@@ -1,5 +1,5 @@
 <script lang="ts">
-	import AlbumCard from '$lib/components/AlbumCard.svelte';
+	import AlbumCard from '$lib/components/album-card/AlbumCard.svelte';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();

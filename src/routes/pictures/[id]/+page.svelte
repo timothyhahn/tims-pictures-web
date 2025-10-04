@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import Lightbox from '$lib/components/Lightbox.svelte';
+	import Lightbox from '$lib/components/lightbox/Lightbox.svelte';
+	import PageMetadata from '$lib/components/PageMetadata.svelte';
 	import type { PageData } from './$types';
 	import type { Picture } from '$lib/api/types';
 
@@ -17,9 +18,6 @@
 
 	// Get the 'back' query param, default to 'album'
 	let backLocation = $derived($page.url.searchParams.get('back') || 'album');
-
-	// Derive OpenGraph URL from page store without query params
-	let ogUrl = $derived($page.url.origin + $page.url.pathname);
 
 	// Picture is loaded directly
 	let picture = $derived(data.picture);
@@ -60,18 +58,12 @@
 	}
 </script>
 
-<svelte:head>
-	<title>{picture ? `${picture.description || 'Photo'} - Tim's Pictures` : "Tim's Pictures"}</title>
-	<meta property="og:title" content="Tim's Pictures" />
-	<meta property="og:type" content="website" />
-	<meta property="og:url" content={ogUrl} />
-	{#if picture?.image_url}
-		<meta property="og:image" content={picture.image_url} />
-	{/if}
-	{#if picture?.description}
-		<meta property="og:description" content={picture.description} />
-	{/if}
-</svelte:head>
+<PageMetadata
+	title={picture ? `${picture.description || 'Photo'} - Tim's Pictures` : "Tim's Pictures"}
+	ogTitle="Tim's Pictures"
+	{...picture?.image_url && { ogImage: picture.image_url }}
+	{...picture?.description && { ogDescription: picture.description }}
+/>
 
 {#if picture && albumData}
 	{@const data = albumData}

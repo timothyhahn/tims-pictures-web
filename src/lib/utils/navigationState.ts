@@ -1,5 +1,5 @@
 import type { Picture } from '$lib/api/types';
-import { NAVIGATION_STATE_EXPIRY_MS } from '$lib/constants';
+import { saveSessionState, loadSessionState } from './sessionState';
 
 interface AlbumState {
 	pictures: Picture[];
@@ -50,7 +50,7 @@ export function saveAlbumState(
 		scrollY,
 		timestamp: Date.now()
 	};
-	sessionStorage.setItem('albumState', JSON.stringify(albumState));
+	saveSessionState('albumState', albumState);
 }
 
 /**
@@ -65,22 +65,9 @@ export function saveAlbumState(
  * @returns Saved album state or null if not found/expired/invalid
  */
 export function loadAlbumState(albumId: number): AlbumState | null {
-	const savedState = sessionStorage.getItem('albumState');
-	if (!savedState) return null;
-
-	try {
-		const state: AlbumState = JSON.parse(savedState);
-		// Check if data is fresh and matches the current album
-		if (Date.now() - state.timestamp < NAVIGATION_STATE_EXPIRY_MS && state.albumId === albumId) {
-			sessionStorage.removeItem('albumState');
-			return state;
-		}
-		sessionStorage.removeItem('albumState');
-		return null;
-	} catch {
-		sessionStorage.removeItem('albumState');
-		return null;
-	}
+	return loadSessionState<AlbumState>('albumState', {
+		validator: (state) => state.albumId === albumId
+	});
 }
 
 /**
@@ -104,7 +91,7 @@ export function saveHomeState(
 		scrollY,
 		timestamp: Date.now()
 	};
-	sessionStorage.setItem('homeState', JSON.stringify(homeState));
+	saveSessionState('homeState', homeState);
 }
 
 /**
@@ -113,22 +100,7 @@ export function saveHomeState(
  * @returns Saved home state or null if not found/expired/invalid
  */
 export function loadHomeState(): HomeState | null {
-	const savedState = sessionStorage.getItem('homeState');
-	if (!savedState) return null;
-
-	try {
-		const state: HomeState = JSON.parse(savedState);
-		// Check if data is fresh
-		if (Date.now() - state.timestamp < NAVIGATION_STATE_EXPIRY_MS) {
-			sessionStorage.removeItem('homeState');
-			return state;
-		}
-		sessionStorage.removeItem('homeState');
-		return null;
-	} catch {
-		sessionStorage.removeItem('homeState');
-		return null;
-	}
+	return loadSessionState<HomeState>('homeState');
 }
 
 /**
@@ -143,7 +115,7 @@ export function savePictureNavState(pictures: Picture[], albumId?: number): void
 		...(albumId !== undefined && { albumId }),
 		timestamp: Date.now()
 	};
-	sessionStorage.setItem('pictureNavState', JSON.stringify(navState));
+	saveSessionState('pictureNavState', navState);
 }
 
 /**
@@ -152,19 +124,7 @@ export function savePictureNavState(pictures: Picture[], albumId?: number): void
  * @returns Saved navigation state or null if not found/expired/invalid
  */
 export function loadPictureNavState(): PictureNavState | null {
-	const savedState = sessionStorage.getItem('pictureNavState');
-	if (!savedState) return null;
-
-	try {
-		const state: PictureNavState = JSON.parse(savedState);
-		// Check if data is fresh
-		if (Date.now() - state.timestamp < NAVIGATION_STATE_EXPIRY_MS) {
-			return state;
-		}
-		sessionStorage.removeItem('pictureNavState');
-		return null;
-	} catch {
-		sessionStorage.removeItem('pictureNavState');
-		return null;
-	}
+	return loadSessionState<PictureNavState>('pictureNavState', {
+		removeAfterLoad: false
+	});
 }

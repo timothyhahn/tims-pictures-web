@@ -6,6 +6,7 @@
 		isWideItem as checkWideItem,
 		isBigItem as checkBigItem
 	} from '$lib/utils/masonry';
+	import PhotoItem from './PhotoItem.svelte';
 
 	interface Props {
 		pictures: Picture[];
@@ -53,41 +54,35 @@
 		}
 		return 'thumbnail';
 	}
+
+	function getItemClass(index: number): string {
+		if (useColumnsLayout) {
+			return 'break-inside-avoid';
+		}
+
+		if (isBigItem(index)) {
+			return 'big-item';
+		}
+		if (isTallItem(index)) {
+			return 'tall-item';
+		}
+		if (isWideItem(index)) {
+			return 'wide-item';
+		}
+		return '';
+	}
 </script>
 
 {#if pictures.length > 0}
 	<div class={useColumnsLayout ? 'columns-1 gap-4 sm:columns-2 xl:columns-3' : 'grid-layout'}>
 		{#each pictures as picture, index (picture.id)}
-			<div
-				class="photo-item group relative mb-4 overflow-hidden rounded shadow-[0_1px_3px_rgba(0,0,0,0.3)] transition-[box-shadow,transform] duration-200 ease-in hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.5)] {useColumnsLayout
-					? 'break-inside-avoid'
-					: ''} {!useColumnsLayout && isBigItem(index)
-					? 'big-item'
-					: !useColumnsLayout && isTallItem(index)
-						? 'tall-item'
-						: !useColumnsLayout && isWideItem(index)
-							? 'wide-item'
-							: ''}"
-			>
-				<!-- Pulsing placeholder -->
-				<div class="absolute inset-0 animate-pulse bg-gray-700/50"></div>
-
-				<a
-					href="/pictures/{picture.id}?back={backLocation}"
-					onclick={(e) => onPhotoClick?.(e, picture)}
-					data-sveltekit-preload-data="off"
-				>
-					<img
-						src="{picture.image_url}?class={getImageClass(index)}"
-						alt={picture.description || 'Photo'}
-						class="image-fade-in relative w-full cursor-pointer {useColumnsLayout
-							? ''
-							: 'h-full object-cover'}"
-						loading="lazy"
-						onload={(e) => e.currentTarget.classList.add('loaded')}
-					/>
-				</a>
-			</div>
+			<PhotoItem
+				{picture}
+				imageClass={getImageClass(index)}
+				itemClass={getItemClass(index)}
+				{backLocation}
+				{...onPhotoClick && { onPhotoClick }}
+			/>
 		{/each}
 	</div>
 {:else}
@@ -104,7 +99,7 @@
 		grid-auto-flow: dense;
 	}
 
-	.grid-layout .photo-item {
+	:global(.grid-layout .photo-item) {
 		height: 100%;
 	}
 
@@ -115,7 +110,7 @@
 			grid-auto-rows: auto;
 		}
 
-		.grid-layout .photo-item {
+		:global(.grid-layout .photo-item) {
 			height: auto;
 		}
 	}
@@ -128,17 +123,17 @@
 		}
 
 		/* Tall items span 2 rows */
-		.grid-layout .tall-item {
+		:global(.grid-layout .tall-item) {
 			grid-row: span 2;
 		}
 
 		/* Wide items span 2 columns */
-		.grid-layout .wide-item {
+		:global(.grid-layout .wide-item) {
 			grid-column: span 2;
 		}
 
 		/* Big items span 2 rows AND 2 columns */
-		.grid-layout .big-item {
+		:global(.grid-layout .big-item) {
 			grid-row: span 2;
 			grid-column: span 2;
 		}
@@ -152,17 +147,17 @@
 		}
 
 		/* Tall items span 2 rows */
-		.grid-layout .tall-item {
+		:global(.grid-layout .tall-item) {
 			grid-row: span 2;
 		}
 
 		/* Wide items span 2 columns */
-		.grid-layout .wide-item {
+		:global(.grid-layout .wide-item) {
 			grid-column: span 2;
 		}
 
 		/* Big items span 2 rows AND 2 columns */
-		.grid-layout .big-item {
+		:global(.grid-layout .big-item) {
 			grid-row: span 2;
 			grid-column: span 2;
 		}

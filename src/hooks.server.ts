@@ -90,7 +90,7 @@ export const handle: Handle = sequence(Sentry.sentryHandle(), async ({ event, re
 			"style-src 'self' 'unsafe-inline'", // unsafe-inline needed for Svelte component styles
 			"img-src 'self' data: https://timspictures.b-cdn.net https://cdn.usefathom.com",
 			"font-src 'self'",
-			"connect-src 'self' https://o4505292621611008.ingest.us.sentry.io https://cloudflareinsights.com",
+			"connect-src 'self' https://timspictures.b-cdn.net https://cdn.usefathom.com https://o4505292621611008.ingest.us.sentry.io https://cloudflareinsights.com",
 			"worker-src 'self' blob:", // blob: needed for Vite HMR workers
 			"frame-ancestors 'none'",
 			"base-uri 'self'",

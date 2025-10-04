@@ -3,37 +3,47 @@
 	import { onMount } from 'svelte';
 	import PhotoGrid from '$lib/components/PhotoGrid.svelte';
 	import ScrollToTopButton from '$lib/components/ScrollToTopButton.svelte';
+	import PageMetadata from '$lib/components/PageMetadata.svelte';
 	import { saveHomeState, loadHomeState } from '$lib/utils/navigationState';
-	import { SCROLL_LOAD_THRESHOLD_PX } from '$lib/constants';
+	import { useInfiniteScroll } from '$lib/composables/useInfiniteScroll.svelte';
+	import { usePaginatedPictures } from '$lib/composables/usePaginatedPictures.svelte';
+	import { scrollToTop, restoreScrollPosition } from '$lib/utils/scroll';
 	import type { Picture } from '$lib/api/types';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 
-	let pictures = $state<Picture[]>([]);
+	const MAX_PICTURES = 48;
+	const PER_PAGE = 12;
+
+	const pagination = usePaginatedPictures({
+		endpoint: '/api/v1/pictures/recent',
+		perPage: PER_PAGE,
+		maxItems: MAX_PICTURES
+	});
+
 	let initialPicturesLoaded = $state(false);
 	let restoredFromCache = $state(false);
 
-	let y = $state(0);
-	let page = $state(1);
-	let loading = $state(false);
-	let done = $state(false);
+	let scrollEnabled = $derived(
+		!pagination.loading && !pagination.done && pagination.pictures.length < MAX_PICTURES
+	);
 
-	const MAX_PICTURES = 48;
-	const PER_PAGE = 12;
+	const scroll = useInfiniteScroll({
+		onLoad: pagination.loadNextPage,
+		get enabled() {
+			return scrollEnabled;
+		},
+		thresholdStrategy: 'fixed'
+	});
 
 	onMount(() => {
 		const savedState = loadHomeState();
 		if (savedState) {
-			pictures = savedState.pictures;
-			page = savedState.page;
-			done = savedState.done;
+			pagination.setState(savedState);
 			restoredFromCache = true;
 			initialPicturesLoaded = true;
-
-			setTimeout(() => {
-				window.scrollTo(0, savedState.scrollY);
-			}, 0);
+			restoreScrollPosition(savedState.scrollY);
 		}
 	});
 
@@ -41,7 +51,7 @@
 	$effect(() => {
 		if (!initialPicturesLoaded && !restoredFromCache) {
 			data.pictures.then((loadedPictures) => {
-				pictures = loadedPictures;
+				pagination.setPictures(loadedPictures);
 				initialPicturesLoaded = true;
 			});
 		}
@@ -49,58 +59,18 @@
 
 	function handlePhotoClick(picture: Picture) {
 		// Save state for returning to home
-		saveHomeState(pictures, page, done, y);
+		saveHomeState(pagination.pictures, pagination.page, pagination.done, scroll.scrollY);
 
 		// For home page, we don't save pictureNavState since pictures are from different albums
 		// Navigation will use the API data instead
 
 		goto(`/pictures/${picture.id}?back=home`);
 	}
-
-	function scrollToTop() {
-		window.scrollTo({ top: 0, behavior: 'smooth' });
-	}
-
-	async function loadNextPage() {
-		if (done || loading || pictures.length >= MAX_PICTURES) {
-			return;
-		}
-		loading = true;
-
-		try {
-			const response = await fetch(`/api/v1/pictures/recent?page=${page + 1}&per_page=${PER_PAGE}`);
-			if (!response.ok) {
-				throw new Error('Failed to fetch pictures');
-			}
-			const newData = await response.json();
-
-			if (newData.data.length === 0 || pictures.length + newData.data.length >= MAX_PICTURES) {
-				done = true;
-			}
-
-			pictures = [...pictures, ...newData.data.slice(0, MAX_PICTURES - pictures.length)];
-			page++;
-		} catch (error) {
-			console.error('Failed to load more pictures:', error);
-		} finally {
-			loading = false;
-		}
-	}
-
-	$effect(() => {
-		if (y && y + window.innerHeight >= document.body.scrollHeight - SCROLL_LOAD_THRESHOLD_PX) {
-			if (!loading && !done && pictures.length < MAX_PICTURES) {
-				loadNextPage();
-			}
-		}
-	});
 </script>
 
-<svelte:window bind:scrollY={y} />
+<svelte:window bind:scrollY={scroll.scrollY} />
 
-<svelte:head>
-	<title>Tim's Pictures</title>
-</svelte:head>
+<PageMetadata title="Tim's Pictures" />
 
 <div class="container mx-auto">
 	<!-- Loading State -->
@@ -111,7 +81,7 @@
 	{/if}
 
 	<!-- Photo Grid -->
-	<PhotoGrid {pictures} onPhotoClick={handlePhotoClick} />
+	<PhotoGrid pictures={pagination.pictures} onPhotoClick={handlePhotoClick} />
 </div>
 
-<ScrollToTopButton show={y > 300} {scrollToTop} />
+<ScrollToTopButton show={scroll.scrollY > 300} {scrollToTop} />

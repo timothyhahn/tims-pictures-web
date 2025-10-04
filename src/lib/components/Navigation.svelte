@@ -17,6 +17,12 @@
 		{ href: '/albums', label: 'Albums' }
 	];
 
+	// External links
+	const externalLinks = [
+		{ href: 'http://vimeo.com/timothyhahn', label: 'Videos' },
+		{ href: 'https://allie.today/', label: 'Allie, Today' }
+	];
+
 	function isActive(href: string): boolean {
 		return $page.url.pathname === href;
 	}
@@ -50,22 +56,16 @@
 
 	<!-- External Links -->
 	<div class="mt-auto space-y-2 border-t border-white/10 pt-6">
-		<a
-			href="http://vimeo.com/timothyhahn"
-			target="_blank"
-			rel="noopener noreferrer"
-			class="block rounded-lg px-4 py-2 text-gray-400 transition-colors hover:bg-white/5 hover:text-white"
-		>
-			Videos →
-		</a>
-		<a
-			href="https://allie.today/"
-			target="_blank"
-			rel="noopener noreferrer"
-			class="block rounded-lg px-4 py-2 text-gray-400 transition-colors hover:bg-white/5 hover:text-white"
-		>
-			Allie, Today →
-		</a>
+		{#each externalLinks as link (link.href)}
+			<a
+				href={link.href}
+				target="_blank"
+				rel="noopener noreferrer"
+				class="block rounded-lg px-4 py-2 text-gray-400 transition-colors hover:bg-white/5 hover:text-white"
+			>
+				{link.label} →
+			</a>
+		{/each}
 	</div>
 </nav>
 
@@ -121,26 +121,18 @@
 						</a>
 					</li>
 				{/each}
-				<li>
-					<a
-						href="http://vimeo.com/timothyhahn"
-						target="_blank"
-						rel="noopener noreferrer"
-						class="block px-6 py-3 text-gray-400 hover:bg-white/5 hover:text-white"
-					>
-						Videos →
-					</a>
-				</li>
-				<li>
-					<a
-						href="https://allie.today/"
-						target="_blank"
-						rel="noopener noreferrer"
-						class="block px-6 py-3 text-gray-400 hover:bg-white/5 hover:text-white"
-					>
-						Allie, Today →
-					</a>
-				</li>
+				{#each externalLinks as link (link.href)}
+					<li>
+						<a
+							href={link.href}
+							target="_blank"
+							rel="noopener noreferrer"
+							class="block px-6 py-3 text-gray-400 hover:bg-white/5 hover:text-white"
+						>
+							{link.label} →
+						</a>
+					</li>
+				{/each}
 			</ul>
 		</div>
 	{/if}
