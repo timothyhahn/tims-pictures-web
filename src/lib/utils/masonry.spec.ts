@@ -27,17 +27,17 @@ describe('masonry utilities', () => {
 	});
 
 	describe('getPatternIndex', () => {
-		it('returns 0, 1, or 2 for any string', () => {
+		it('returns 0-9 for any string', () => {
 			const index1 = getPatternIndex('album-1');
 			const index2 = getPatternIndex('album-2');
 			const index3 = getPatternIndex('album-3');
 
 			expect(index1).toBeGreaterThanOrEqual(0);
-			expect(index1).toBeLessThanOrEqual(2);
+			expect(index1).toBeLessThanOrEqual(9);
 			expect(index2).toBeGreaterThanOrEqual(0);
-			expect(index2).toBeLessThanOrEqual(2);
+			expect(index2).toBeLessThanOrEqual(9);
 			expect(index3).toBeGreaterThanOrEqual(0);
-			expect(index3).toBeLessThanOrEqual(2);
+			expect(index3).toBeLessThanOrEqual(9);
 		});
 
 		it('returns 0 when no identifier provided', () => {
@@ -128,7 +128,7 @@ describe('masonry utilities', () => {
 
 			// This test just ensures patterns are actually different
 			// (We're not asserting they must be different for index 10 specifically)
-			expect([0, 1, 2].some((i) => isTallItem(index, i))).toBeDefined();
+			expect([0, 1, 2, 3, 4, 5, 6, 7, 8, 9].some((i) => isTallItem(index, i))).toBeDefined();
 		});
 	});
 });
