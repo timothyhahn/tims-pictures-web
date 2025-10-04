@@ -12,14 +12,11 @@ This system generates masonry-style layouts where photos can span different numb
 
 ```
 masonry/
-├── constants.ts    # 10 masonry patterns (prime modulo rules)
-├── types.ts        # TypeScript interfaces
-├── hash.ts         # Album ID → pattern index
-├── patterns.ts     # isTallItem, isWideItem, isBigItem, isFullWidthItem
-├── simulation.ts   # CSS Grid auto-placement simulation
+├── patterns.ts     # Pattern definitions, selection, and item sizing
+├── simulation.ts   # CSS Grid simulation and perfect pattern search
 ├── gaps.ts         # Gap detection and validation
-├── perfect.ts      # Perfect pattern search
 ├── fixups.ts       # Comprehensive gap-fixing logic
+├── types.ts        # TypeScript interfaces
 ├── index.ts        # Main API: getMasonryLayout()
 └── README.md       # This file
 ```

@@ -1,4 +1,4 @@
-import { simulateGridLayoutExtended } from './simulation';
+import { simulateGridLayout } from './simulation';
 import { detectGaps } from './gaps';
 import type { SizeOverride } from './types';
 
@@ -25,7 +25,7 @@ export function createComprehensiveFixups(
 	const overrides = new Map<number, SizeOverride>();
 
 	// Get full layout
-	const extendedLayout = simulateGridLayoutExtended(photoCount, patternIndex, numColumns);
+	const extendedLayout = simulateGridLayout(photoCount, patternIndex, numColumns);
 	let { allItems, lastRowItems, emptySlots, totalRows } = extendedLayout;
 
 	if (lastRowItems.length === 0) {
@@ -66,7 +66,7 @@ export function createComprehensiveFixups(
 		}
 
 		// Re-simulate with overrides to see if gaps are fixed
-		const reSimulated = simulateGridLayoutExtended(photoCount, patternIndex, numColumns, overrides);
+		const reSimulated = simulateGridLayout(photoCount, patternIndex, numColumns, overrides);
 		const { hasGaps: stillHasGaps } = detectGaps(
 			reSimulated.allItems,
 			reSimulated.totalRows,
@@ -117,7 +117,7 @@ export function createComprehensiveFixups(
 			});
 
 			// Re-simulate to get clean layout
-			const cleanSim = simulateGridLayoutExtended(photoCount, patternIndex, numColumns, overrides);
+			const cleanSim = simulateGridLayout(photoCount, patternIndex, numColumns, overrides);
 			allItems = cleanSim.allItems;
 			lastRowItems = cleanSim.lastRowItems;
 			emptySlots = cleanSim.emptySlots;
@@ -268,12 +268,7 @@ export function createComprehensiveFixups(
 				overrides.set(item.index, { tall: false, wide: false });
 			}
 			// Re-simulate to get updated emptySlots count
-			const reSimAfterFlatten = simulateGridLayoutExtended(
-				photoCount,
-				patternIndex,
-				numColumns,
-				overrides
-			);
+			const reSimAfterFlatten = simulateGridLayout(photoCount, patternIndex, numColumns, overrides);
 			lastRowItems = reSimAfterFlatten.lastRowItems;
 			emptySlots = reSimAfterFlatten.emptySlots;
 			// Don't return - continue to Case C to handle any remaining empty slots

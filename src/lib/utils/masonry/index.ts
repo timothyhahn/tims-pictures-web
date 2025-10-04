@@ -7,17 +7,21 @@
  * See README.md for detailed documentation.
  */
 
-import { getPatternIndex } from './hash';
-import { findPerfectPattern } from './perfect';
-import { simulateGridLayout } from './simulation';
+import { getPatternIndex } from './patterns';
+import { findPerfectPattern, simulateGridLayout } from './simulation';
 import { createComprehensiveFixups } from './fixups';
 import type { MasonryLayoutConfig } from './types';
 
 // Re-export public API
-export { hashString, getPatternIndex } from './hash';
-export { isTallItem, isWideItem, isBigItem, isFullWidthItem } from './patterns';
-export { simulateGridLayout } from './simulation';
-export { findPerfectPattern } from './perfect';
+export {
+	hashString,
+	getPatternIndex,
+	isTallItem,
+	isWideItem,
+	isBigItem,
+	isFullWidthItem
+} from './patterns';
+export { simulateGridLayout, findPerfectPattern } from './simulation';
 export type { MasonryLayoutConfig, GridItem, GridLayoutResult, SizeOverride } from './types';
 
 /**

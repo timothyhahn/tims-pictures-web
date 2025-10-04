@@ -1,5 +1,6 @@
-import { isTallItem, isWideItem } from './patterns';
-import type { GridItem, GridLayoutResult, ExtendedGridLayoutResult, SizeOverride } from './types';
+import { MASONRY_PATTERNS, isTallItem, isWideItem } from './patterns';
+import { isTrulyPerfect } from './gaps';
+import type { GridItem, GridLayoutResult, SizeOverride } from './types';
 
 /**
  * Simulates CSS Grid auto-placement with grid-auto-flow: dense
@@ -11,7 +12,7 @@ import type { GridItem, GridLayoutResult, ExtendedGridLayoutResult, SizeOverride
  * @param patternIndex - Which masonry pattern to use (0-9)
  * @param numColumns - Number of columns in the grid (typically 2 or 3)
  * @param overrides - Optional map of index-specific size overrides
- * @returns Layout information including rows, last row items, and whether it tiles perfectly
+ * @returns Layout information including all items, rows, and perfection status
  */
 export function simulateGridLayout(
 	photoCount: number,
@@ -19,25 +20,6 @@ export function simulateGridLayout(
 	numColumns: number,
 	overrides?: Map<number, SizeOverride>
 ): GridLayoutResult {
-	const result = simulateGridLayoutExtended(photoCount, patternIndex, numColumns, overrides);
-	return {
-		totalRows: result.totalRows,
-		lastRowItems: result.lastRowItems,
-		emptySlots: result.emptySlots,
-		isPerfect: result.isPerfect
-	};
-}
-
-/**
- * Extended version of simulateGridLayout that returns all items
- * Used for advanced gap detection
- */
-export function simulateGridLayoutExtended(
-	photoCount: number,
-	patternIndex: number,
-	numColumns: number,
-	overrides?: Map<number, SizeOverride>
-): ExtendedGridLayoutResult {
 	const items: GridItem[] = [];
 
 	// Track occupied cells in a 2D grid (sparse array)
@@ -127,4 +109,43 @@ export function simulateGridLayoutExtended(
 		isPerfect,
 		allItems: items
 	};
+}
+
+/**
+ * Finds a pattern that creates perfect tiling, if one exists
+ *
+ * Starting from the hash-based pattern index, loops through all patterns
+ * to find one that tiles perfectly with no visual gaps anywhere in the grid.
+ * If none found, returns the original.
+ *
+ * @param photoCount - Total number of photos in the album
+ * @param startPatternIndex - The hash-based pattern to start from
+ * @param numColumns - Number of columns in the grid
+ * @returns Pattern index that tiles perfectly, or the original if none found
+ */
+export function findPerfectPattern(
+	photoCount: number,
+	startPatternIndex: number,
+	numColumns: number
+): number {
+	// Try all patterns starting from the hashed one
+	for (let offset = 0; offset < MASONRY_PATTERNS.length; offset++) {
+		const patternIndex = (startPatternIndex + offset) % MASONRY_PATTERNS.length;
+		const layout = simulateGridLayout(photoCount, patternIndex, numColumns);
+
+		if (
+			isTrulyPerfect(
+				layout.allItems,
+				layout.totalRows,
+				layout.lastRowItems,
+				numColumns,
+				layout.emptySlots
+			)
+		) {
+			return patternIndex;
+		}
+	}
+
+	// No truly perfect pattern found, return original
+	return startPatternIndex;
 }

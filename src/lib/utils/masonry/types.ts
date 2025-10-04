@@ -30,12 +30,6 @@ export interface GridLayoutResult {
 	lastRowItems: GridItem[];
 	emptySlots: number;
 	isPerfect: boolean;
-}
-
-/**
- * Extended grid layout result with full item information
- */
-export interface ExtendedGridLayoutResult extends GridLayoutResult {
 	allItems: GridItem[];
 }
 
