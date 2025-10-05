@@ -11,6 +11,7 @@ const ALLOWED_ENDPOINTS = [
 	{ method: 'GET', pattern: /^v1\/albums$/ },
 	{ method: 'GET', pattern: /^v1\/albums\/[^/]+$/ },
 	{ method: 'GET', pattern: /^v1\/albums\/slug\/[^/]+$/ },
+	{ method: 'POST', pattern: /^v1\/albums\/slug\/[^/]+\/validate$/ },
 
 	// Pictures
 	{ method: 'GET', pattern: /^v1\/pictures\/recent$/ },
@@ -60,6 +61,7 @@ async function proxyRequest(
 	path: string,
 	queryString: string,
 	method: string,
+	authToken?: string,
 	body?: string
 ): Promise<Response> {
 	// Check if the endpoint is allowed
@@ -71,11 +73,21 @@ async function proxyRequest(
 	const apiUrl = `${API_URL}/${path}${queryString}`;
 
 	try {
-		const options: RequestInit = { method };
+		const headers: Record<string, string> = {};
+
 		if (body) {
-			options.headers = { 'Content-Type': 'application/json' };
-			options.body = body;
+			headers['Content-Type'] = 'application/json';
 		}
+
+		if (authToken) {
+			headers['Authorization'] = `Bearer ${authToken}`;
+		}
+
+		const options: RequestInit = {
+			method,
+			...(Object.keys(headers).length > 0 && { headers }),
+			...(body && { body })
+		};
 
 		const response = await fetch(apiUrl, options);
 		return handleApiResponse(response);
@@ -84,12 +96,15 @@ async function proxyRequest(
 	}
 }
 
-export const GET: RequestHandler = async ({ params, url }) => {
-	return proxyRequest(params.path, url.search, 'GET');
+export const GET: RequestHandler = async ({ params, url, cookies }) => {
+	const authToken = cookies.get('auth_token');
+	return proxyRequest(params.path, url.search, 'GET', authToken);
 };
 
-export const POST: RequestHandler = async () => {
-	return json({ error: 'Method not allowed' }, { status: 405 });
+export const POST: RequestHandler = async ({ params, url, cookies, request }) => {
+	const authToken = cookies.get('auth_token');
+	const body = await request.text();
+	return proxyRequest(params.path, url.search, 'POST', authToken, body);
 };
 
 export const PUT: RequestHandler = async () => {

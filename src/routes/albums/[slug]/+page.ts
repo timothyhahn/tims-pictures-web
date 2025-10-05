@@ -14,6 +14,10 @@ export const load: PageLoad = async ({ params, fetch }) => {
 	// Fetch album - AWAIT for OpenGraph tags
 	const album = await fetch(`/api/v1/albums/slug/${normalizedSlug}`).then((response) => {
 		if (!response.ok) {
+			// If the album is private (403), redirect to auth page
+			if (response.status === 403 || response.status === 401) {
+				throw redirect(303, `/albums/${normalizedSlug}/auth`);
+			}
 			throw error(404, 'Album not found');
 		}
 		return response.json();
