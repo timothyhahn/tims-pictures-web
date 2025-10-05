@@ -88,9 +88,9 @@ export const handle: Handle = sequence(Sentry.sentryHandle(), async ({ event, re
 			"default-src 'self'",
 			"script-src 'self' 'unsafe-inline' https://cdn.usefathom.com https://static.cloudflareinsights.com", // unsafe-inline needed for SvelteKit hydration
 			"style-src 'self' 'unsafe-inline'", // unsafe-inline needed for Svelte component styles
-			"img-src 'self' data: https://timspictures.b-cdn.net https://cdn.usefathom.com",
+			"img-src 'self' data: https://cdn.tims.pictures https://timspictures.b-cdn.net https://cdn.usefathom.com",
 			"font-src 'self'",
-			"connect-src 'self' https://timspictures.b-cdn.net https://cdn.usefathom.com https://o4505292621611008.ingest.us.sentry.io https://cloudflareinsights.com",
+			"connect-src 'self' https://cdn.tims.pictures https://timspictures.b-cdn.net https://cdn.usefathom.com https://o4505292621611008.ingest.us.sentry.io https://cloudflareinsights.com",
 			"worker-src 'self' blob:", // blob: needed for Vite HMR workers
 			"frame-ancestors 'none'",
 			"base-uri 'self'",
