@@ -18,7 +18,7 @@
 
 		<a
 			href="/"
-			class="inline-block rounded-lg bg-green-600 px-6 py-3 text-white transition-colors hover:bg-green-700"
+			class="inline-block rounded-lg bg-gray-600 px-6 py-3 text-white transition-colors hover:bg-gray-700"
 		>
 			Go Home
 		</a>

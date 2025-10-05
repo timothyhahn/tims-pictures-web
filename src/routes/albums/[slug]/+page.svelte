@@ -124,7 +124,7 @@
 			<p class="mb-4 text-xl text-red-400">Failed to load pictures</p>
 			<p class="text-gray-400">{loadError}</p>
 			<button
-				class="mt-4 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+				class="mt-4 rounded bg-gray-600 px-4 py-2 text-white hover:bg-gray-700"
 				onclick={() => window.location.reload()}
 			>
 				Retry

@@ -40,16 +40,20 @@ export const actions = {
 
 			const data = await response.json();
 
-			// Save the JWT token to cookies
-			if (data.token) {
-				cookies.set('auth_token', data.token, {
-					path: '/',
-					httpOnly: true,
-					secure: true,
-					sameSite: 'strict',
-					maxAge: 60 * 60 * 24 * 30 // 30 days
-				});
+			// Verify we received a token
+			if (!data.token) {
+				console.error('[Album Auth] No token received from API');
+				return fail(500, { error: 'Authentication failed - no token received', password });
 			}
+
+			// Save the JWT token to cookies
+			cookies.set('auth_token', data.token, {
+				path: '/',
+				httpOnly: true,
+				secure: true,
+				sameSite: 'strict',
+				maxAge: 60 * 60 * 24 * 30 // 30 days
+			});
 		} catch (error) {
 			console.error('[Album Auth] Validation error:', error);
 			return fail(500, { error: 'Failed to validate password', password });

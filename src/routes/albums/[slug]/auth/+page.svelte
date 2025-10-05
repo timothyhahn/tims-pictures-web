@@ -34,7 +34,7 @@
 						type="password"
 						id="password"
 						name="password"
-						class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+						class="w-full rounded-lg border border-gray-600 bg-gray-700 px-4 py-2 text-white placeholder-gray-400 focus:border-gray-500 focus:ring-2 focus:ring-gray-500 focus:outline-none"
 						placeholder="Enter album password"
 						required
 						autofocus
@@ -50,7 +50,7 @@
 
 				<button
 					type="submit"
-					class="w-full rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+					class="w-full rounded-lg bg-gray-600 px-4 py-2 font-medium text-white transition-colors hover:bg-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
 					disabled={submitting}
 				>
 					{submitting ? 'Validating...' : 'Access Album'}
@@ -58,7 +58,7 @@
 			</form>
 
 			<div class="mt-6 text-center">
-				<a href="/albums" class="text-sm text-blue-400 hover:text-blue-300"> ← Back to Albums </a>
+				<a href="/albums" class="text-sm text-gray-400 hover:text-gray-300"> ← Back to Albums </a>
 			</div>
 		</div>
 	</div>
