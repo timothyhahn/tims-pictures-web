@@ -10,16 +10,33 @@ Object.defineProperty(globalThis, 'window', {
 });
 
 // Mock TouchEvent for Node environment
-global.TouchEvent = class TouchEvent extends Event {
+// @ts-expect-error - Mocking TouchEvent for Node test environment
+global.TouchEvent = class MockTouchEvent extends Event {
 	touches: Touch[];
 	changedTouches: Touch[];
+	targetTouches: Touch[] = [];
+	altKey: boolean = false;
+	ctrlKey: boolean = false;
+	metaKey: boolean = false;
+	shiftKey: boolean = false;
+	detail: number = 0;
+	view: Window | null = null;
+	which: number = 0;
 
 	constructor(type: string, eventInitDict: { touches?: Touch[]; changedTouches?: Touch[] } = {}) {
 		super(type);
 		this.touches = eventInitDict.touches || [];
 		this.changedTouches = eventInitDict.changedTouches || [];
 	}
-} as typeof TouchEvent;
+
+	getModifierState(): boolean {
+		return false;
+	}
+
+	initUIEvent(): void {
+		// No-op for tests
+	}
+};
 
 describe('createTouchGestureHandler', () => {
 	let onSwipe: ReturnType<typeof vi.fn>;
