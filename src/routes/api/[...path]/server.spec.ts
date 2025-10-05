@@ -17,6 +17,14 @@ vi.mock('$env/dynamic/private', () => ({
 // Import after mocks are set up
 const { GET, POST, PUT, DELETE } = await import('./+server');
 
+// Helper to create mock cookies object
+const mockCookies = () => ({
+	get: vi.fn().mockReturnValue(undefined),
+	set: vi.fn(),
+	delete: vi.fn(),
+	serialize: vi.fn()
+});
+
 describe('API Proxy Security', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -34,7 +42,8 @@ describe('API Proxy Security', () => {
 
 			const response = await GET({
 				params: { path: 'v1/albums' },
-				url: new URL('http://localhost/api/v1/albums')
+				url: new URL('http://localhost/api/v1/albums'),
+				cookies: mockCookies()
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any);
 
@@ -54,7 +63,8 @@ describe('API Proxy Security', () => {
 
 			const response = await GET({
 				params: { path: 'v1/albums/123' },
-				url: new URL('http://localhost/api/v1/albums/123')
+				url: new URL('http://localhost/api/v1/albums/123'),
+				cookies: mockCookies()
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any);
 
@@ -71,7 +81,8 @@ describe('API Proxy Security', () => {
 
 			const response = await GET({
 				params: { path: 'v1/albums/slug/my-album' },
-				url: new URL('http://localhost/api/v1/albums/slug/my-album')
+				url: new URL('http://localhost/api/v1/albums/slug/my-album'),
+				cookies: mockCookies()
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any);
 
@@ -88,7 +99,8 @@ describe('API Proxy Security', () => {
 
 			const response = await GET({
 				params: { path: 'v1/pictures/recent' },
-				url: new URL('http://localhost/api/v1/pictures/recent')
+				url: new URL('http://localhost/api/v1/pictures/recent'),
+				cookies: mockCookies()
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any);
 
@@ -105,7 +117,8 @@ describe('API Proxy Security', () => {
 
 			const response = await GET({
 				params: { path: 'v1/pictures/456' },
-				url: new URL('http://localhost/api/v1/pictures/456')
+				url: new URL('http://localhost/api/v1/pictures/456'),
+				cookies: mockCookies()
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any);
 
@@ -122,7 +135,8 @@ describe('API Proxy Security', () => {
 
 			const response = await GET({
 				params: { path: 'v1/albums/123/pictures' },
-				url: new URL('http://localhost/api/v1/albums/123/pictures')
+				url: new URL('http://localhost/api/v1/albums/123/pictures'),
+				cookies: mockCookies()
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any);
 
@@ -134,7 +148,8 @@ describe('API Proxy Security', () => {
 		it('blocks GET /v1/admin/users', async () => {
 			const response = await GET({
 				params: { path: 'v1/admin/users' },
-				url: new URL('http://localhost/api/v1/admin/users')
+				url: new URL('http://localhost/api/v1/admin/users'),
+				cookies: mockCookies()
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any);
 
@@ -147,7 +162,8 @@ describe('API Proxy Security', () => {
 		it('blocks GET /v1/users', async () => {
 			const response = await GET({
 				params: { path: 'v1/users' },
-				url: new URL('http://localhost/api/v1/users')
+				url: new URL('http://localhost/api/v1/users'),
+				cookies: mockCookies()
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any);
 
@@ -163,13 +179,14 @@ describe('API Proxy Security', () => {
 			const response = await POST({
 				params: { path: 'v1/albums' },
 				url: new URL('http://localhost/api/v1/albums'),
-				request: mockRequest
+				request: mockRequest,
+				cookies: mockCookies()
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any);
 
-			expect(response.status).toBe(405);
+			expect(response.status).toBe(403);
 			const body = await response.json();
-			expect(body.error).toBe('Method not allowed');
+			expect(body.error).toBe('Endpoint not allowed');
 			expect(globalThis.fetch).not.toHaveBeenCalled();
 		});
 
@@ -207,7 +224,8 @@ describe('API Proxy Security', () => {
 		it('blocks path traversal attempts', async () => {
 			const response = await GET({
 				params: { path: 'v1/albums/../admin/users' },
-				url: new URL('http://localhost/api/v1/albums/../admin/users')
+				url: new URL('http://localhost/api/v1/albums/../admin/users'),
+				cookies: mockCookies()
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any);
 
@@ -227,7 +245,8 @@ describe('API Proxy Security', () => {
 
 			const response = await GET({
 				params: { path: 'v1/albums' },
-				url: new URL('http://localhost/api/v1/albums?page=2&per_page=10')
+				url: new URL('http://localhost/api/v1/albums?page=2&per_page=10'),
+				cookies: mockCookies()
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} as any);
 
