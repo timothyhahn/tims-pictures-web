@@ -3,6 +3,7 @@
 	import { onMount } from 'svelte';
 	import type { Picture } from '$lib/api/types';
 	import { formatMetadata } from '$lib/utils/metadata';
+	import { createTouchGestureHandler } from '$lib/utils/touchGestures';
 	import LightboxControls from './LightboxControls.svelte';
 	import LightboxInfo from './LightboxInfo.svelte';
 
@@ -24,8 +25,19 @@
 	let animationDirection = $state<'left' | 'right' | null>(null);
 	let outgoingDirection = $state<'left' | 'right' | null>(null);
 	let isAnimating = $state(false);
-	let touchStartX = $state(0);
-	let touchStartY = $state(0);
+
+	// Create touch gesture handler with multitouch detection
+	const touchHandler = createTouchGestureHandler({
+		onSwipe: (direction) => {
+			if (direction === 'left' && onNext && !isAnimating) {
+				handleNextWithAnimation();
+			} else if (direction === 'right' && onPrevious && !isAnimating) {
+				handlePreviousWithAnimation();
+			}
+		},
+		swipeThreshold: 0.18,
+		enabled: true
+	});
 
 	let formattedMetadata = $derived(
 		picture.metadata && typeof picture.metadata === 'object'
@@ -125,38 +137,6 @@
 		}
 	}
 
-	function handleTouchStart(e: TouchEvent) {
-		const touch = e.touches[0];
-		if (!touch) return;
-		touchStartX = touch.clientX;
-		touchStartY = touch.clientY;
-	}
-
-	function handleTouchEnd(e: TouchEvent) {
-		const touch = e.changedTouches[0];
-		if (!touch) return;
-		const touchEndX = touch.clientX;
-		const touchEndY = touch.clientY;
-
-		const deltaX = touchEndX - touchStartX;
-		const deltaY = touchEndY - touchStartY;
-
-		// Calculate threshold as 20% of viewport width
-		const swipeThreshold = window.innerWidth * 0.2;
-
-		// Only trigger if horizontal swipe is more significant than vertical
-		// and exceeds minimum threshold (20% of screen width)
-		if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > swipeThreshold) {
-			if (deltaX > 0 && onPrevious) {
-				// Swipe right -> go to previous
-				handlePreviousWithAnimation();
-			} else if (deltaX < 0 && onNext) {
-				// Swipe left -> go to next
-				handleNextWithAnimation();
-			}
-		}
-	}
-
 	$effect(() => {
 		document.addEventListener('keydown', handleKeydown);
 		return () => {
@@ -173,8 +153,10 @@
 <div
 	class="fixed inset-0 z-50 flex items-center justify-center"
 	style="background-color: var(--color-bg);"
-	ontouchstart={handleTouchStart}
-	ontouchend={handleTouchEnd}
+	ontouchstart={touchHandler.handleTouchStart}
+	ontouchmove={touchHandler.handleTouchMove}
+	ontouchend={touchHandler.handleTouchEnd}
+	ontouchcancel={touchHandler.handleTouchCancel}
 >
 	<!-- Background click to close -->
 	<button onclick={handleClose} class="absolute inset-0 cursor-default" aria-label="Close lightbox"
