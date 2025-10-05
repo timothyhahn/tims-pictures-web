@@ -35,18 +35,19 @@ export function createComprehensiveFixups(
 	// ============================================================================
 	// STEP 1: Detect and fix gaps in middle rows
 	// ============================================================================
-	// Problem: Tall items create gaps when CSS Grid can't find items to fill them
+	// Problem: Tall items create gaps when the next item is too wide to fit
 	//
-	// Before:          After (flatten tall item):
-	// ┌──┬──┬──┐       ┌──┬──┬──┐
-	// │T │A │B │       │A │B │C │
-	// │A├──┼──┤       ├──┼──┼──┤
-	// │L │? │C │  =>   │D │E │F │
-	// │L├──┼──┤       ├──┼──┼──┤
-	// │  │D │E │       │G │H │I │
-	// └──┴──┴──┘       └──┴──┴──┘
+	// Before (item 17 is tall 2x1):
+	//        ┌──┬──┬──┐
+	// Row 6: │14│15│16│
+	//        ├──┼──┼──┤
+	// Row 7: │17│18│ ?│  ← Gap in row 7 (not last row!)
+	//        │  ├──┼──┤     Item 17 is tall (spans rows 7-8)
+	// Row 8: │  │19│19│  ← Item 19 is wide, couldn't fit in gap above
+	//        └──┴──┴──┘
 	//
-	// The "?" represents a gap - CSS Grid couldn't find an item to fill it
+	// Step 1 flattens item 17 (tall item spanning into gap row).
+	// Remaining gaps are fixed by later steps (e.g., also flattening item 19).
 	// ============================================================================
 
 	const { hasGaps, gapRows } = detectGaps(allItems, totalRows, numColumns);
@@ -88,19 +89,20 @@ export function createComprehensiveFixups(
 	// ============================================================================
 	// STEP 2: Flatten big/tall items in last 3 rows
 	// ============================================================================
-	// Problem: Big/tall items near the end cause unpredictable flow
+	// Problem: Big/tall items near the end cause unpredictable flow and extra rows
 	//
-	// Before (with big item):    After (flattened):
-	// ┌────┬──┐                  ┌──┬──┬──┐
-	// │ BIG│74│                  │72│73│74│
-	// │    ├──┤                  ├──┼──┼──┤
-	// │    │75│            =>    │75│76│77│  <- Clean last row
-	// ├────┼──┤                  └──┴──┴──┘
-	// │ 76 │77│  <- Broken!
-	// └────┴──┘
+	// Before (item 72 is big 2x2):  After (items 72-77 flattened):
+	// Row 31: ┌────────┬──┐         Row 31: ┌──┬──┬──┐
+	//         │   72   │76│                 │74│75│76│
+	// Row 32: │        ├──┤         Row 32: ├──┼──┼──┤
+	//         │        │77│   =>            │77│ ?│ ?│
+	// Row 33: ├────────┼──┤                 └──┴──┴──┘
+	//         │   75   │ ?│  Gap!
+	//         └────────┴──┘
 	//
-	// Big items cause items to flow around them, making it hard to predict
-	// what ends up in the last row. Flatten them for predictable layouts.
+	// Before: Big item causes 4 rows (31-33) with gap in row 33
+	// After:  Clean 2 rows (31-32), predictable flow
+	// Note:   Items 73-74 were pushed earlier due to big item at 72
 	// ============================================================================
 
 	if (totalRows >= 3) {

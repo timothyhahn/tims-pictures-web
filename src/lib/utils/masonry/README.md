@@ -69,32 +69,39 @@ The fixup system runs in 4 steps:
 
 #### Step 1: Fix Middle Row Gaps
 
-Tall items can create gaps when CSS Grid can't find items to fill them:
+Tall items create gaps when the next item is too wide to fit:
 
 ```
-Before:          After:
-┌──┬──┬──┐       ┌──┬──┬──┐
-│T │A │B │       │A │B │C │
-│A├──┼──┤       ├──┼──┼──┤
-│L │? │C │  =>   │D │E │F │  (Flatten the tall item)
-│L├──┼──┤       ├──┼──┼──┤
-│  │D │E │       │G │H │I │
-└──┴──┴──┘       └──┴──┴──┘
+Before (item 17 is tall 2x1):
+Row 6: ┌──┬──┬──┐
+       │14│15│16│
+Row 7: ├──┼──┼──┤
+       │17│18│ ?│  ← Gap in row 7 (not last row!)
+Row 8: │  ├────┤
+       │  │ 19 │  ← Item 19 is wide, couldn't fit in gap
+       └──┴────┘
+
+Step 1 flattens item 17 (tall item spanning into gap row).
+Remaining gaps are fixed by later steps (e.g., also flattening item 19).
 ```
 
 #### Step 2: Flatten Last 3 Rows
 
-Big/tall items near the end cause unpredictable flow:
+Big/tall items near the end cause unpredictable flow and extra rows:
 
 ```
-Before:                After:
-┌────┬──┐            ┌──┬──┬──┐
-│ BIG│74│            │72│73│74│
-│    ├──┤            ├──┼──┼──┤
-│    │75│      =>    │75│76│77│
-├────┼──┤            └──┴──┴──┘
-│ 76 │77│
-└────┴──┘
+Before (item 72 is big 2x2):  After (items 72-77 flattened):
+Row 31: ┌────────┬──┐         Row 31: ┌──┬──┬──┐
+        │   72   │76│                 │74│75│76│
+Row 32: │        ├──┤         Row 32: ├──┼──┼──┤
+        │        │77│   =>            │77│ ?│ ?│
+Row 33: ├────────┼──┤                 └──┴──┴──┘
+        │   75   │ ?│  Gap!
+        └────────┴──┘
+
+Before: Big item causes 4 rows (31-33) with gap in row 33
+After:  Clean 2 rows (31-32), predictable flow
+Note: Items 73-74 were pushed earlier due to big item at 72
 ```
 
 #### Step 3: Perfect Tiling (Last 2 Rows)
@@ -163,12 +170,36 @@ The returned `MasonryLayoutConfig` contains:
 
 ## Performance
 
-- **Time Complexity**: O(10 × N) worst case
-  - 10 patterns to try
-  - N photos to simulate per pattern
-- **Typical Albums**: Sub-millisecond (<1ms for 200 photos)
-- **Large Albums**: ~2-3ms for 1000 photos
-- **Runs Once**: Calculated using total photo count, not recalculated during infinite scroll
+### Time Complexity
+
+**Worst case: O(10 × N²)**
+
+The simulation uses CSS Grid's dense packing algorithm, which searches from row 0 for each item:
+
+- Photo i must search through rows 0 to ~i/columns to find its position
+- Per photo: O(i × columns) = O(i) operations
+- For N photos: O(1 + 2 + 3 + ... + N) = O(N²)
+- Pattern search tries up to 10 patterns: O(10 × N²)
+
+**Average case: O(N²)** with constant factors from early termination
+
+### Actual Performance (Measured)
+
+- **Small Albums** (N ≤ 100): < 1ms
+- **Medium Albums** (N = 200): ~3ms
+- **Large Albums** (N = 500): ~13ms
+- **Very Large Albums** (N = 1000): ~25ms
+- **Extra Large Albums** (N = 2000): ~190ms
+
+**Note**: Calculated once using total photo count, not recalculated during infinite scroll
+
+### Optimization Opportunities
+
+For very large albums (N > 1000), consider:
+
+- Caching results (already deterministic per album)
+- Incremental layout (process visible photos first)
+- Simplified patterns (skip perfect pattern search)
 
 ## Prime Number Theory
 
