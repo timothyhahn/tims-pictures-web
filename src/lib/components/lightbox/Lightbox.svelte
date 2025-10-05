@@ -35,7 +35,7 @@
 				handlePreviousWithAnimation();
 			}
 		},
-		swipeThreshold: 0.18, // Reduced from 0.2 (20%) to 0.18 (18%)
+		swipeThreshold: 0.18,
 		enabled: true
 	});
 
