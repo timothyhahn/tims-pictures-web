@@ -51,3 +51,48 @@ body {
 .image-fade-in.loaded {
 	opacity: 1;
 }
+
+/* View Transitions - Directional slide for picture navigation */
+
+/* Slide animations - keep opacity at 1 to prevent fade */
+@keyframes slide-out-to-left {
+	from {
+		transform: translateX(0);
+	}
+	to {
+		transform: translateX(-100%);
+	}
+}
+
+@keyframes slide-in-from-right {
+	from {
+		transform: translateX(100%);
+	}
+	to {
+		transform: translateX(0);
+	}
+}
+
+@keyframes slide-out-to-right {
+	from {
+		transform: translateX(0);
+	}
+	to {
+		transform: translateX(100%);
+	}
+}
+
+@keyframes slide-in-from-left {
+	from {
+		transform: translateX(-100%);
+	}
+	to {
+		transform: translateX(0);
+	}
+}
+
+/* Default: no special animation (will use zoom morph for pictures) */
+::view-transition-old(root),
+::view-transition-new(root) {
+	animation-duration: 0.3s;
+}

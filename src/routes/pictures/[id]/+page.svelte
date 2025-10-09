@@ -37,6 +37,10 @@
 		if (currentIndex < allPictures.length - 1) {
 			const nextPicture = allPictures[currentIndex + 1];
 			if (!nextPicture) return;
+			// Set direction and IDs for view transition
+			document.documentElement.dataset.pictureNavDirection = 'next';
+			document.documentElement.dataset.oldPictureId = picture.id;
+			document.documentElement.dataset.newPictureId = nextPicture.id;
 			goto(`/pictures/${nextPicture.id}?back=${backLocation}`);
 		}
 	}
@@ -45,11 +49,17 @@
 		if (currentIndex > 0) {
 			const prevPicture = allPictures[currentIndex - 1];
 			if (!prevPicture) return;
+			// Set direction and IDs for view transition
+			document.documentElement.dataset.pictureNavDirection = 'prev';
+			document.documentElement.dataset.oldPictureId = picture.id;
+			document.documentElement.dataset.newPictureId = prevPicture.id;
 			goto(`/pictures/${prevPicture.id}?back=${backLocation}`);
 		}
 	}
 
 	function handleClose(albumSlug: string) {
+		// Clear direction for zoom-out transition
+		delete document.documentElement.dataset.pictureNavDirection;
 		if (backLocation === 'home') {
 			goto('/');
 		} else {

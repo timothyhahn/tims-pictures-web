@@ -50,7 +50,7 @@
 			class="image-fade-in relative w-full cursor-pointer {fillHeight
 				? 'h-full object-cover'
 				: 'h-auto object-cover'}"
-			style={imageStyle}
+			style="view-transition-name: picture-{picture.id}; {imageStyle}"
 			loading="lazy"
 			onload={handleImageLoad}
 		/>

@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { onMount } from 'svelte';
 	import type { Picture } from '$lib/api/types';
 	import { formatMetadata } from '$lib/utils/metadata';
 	import { createTouchGestureHandler } from '$lib/utils/touchGestures';
@@ -22,17 +21,15 @@
 	let showControls = $state(true);
 	let hideControlsTimeout: ReturnType<typeof setTimeout> | null = null;
 	let imageLoaded = $state(false);
-	let animationDirection = $state<'left' | 'right' | null>(null);
-	let outgoingDirection = $state<'left' | 'right' | null>(null);
 	let isAnimating = $state(false);
 
 	// Create touch gesture handler with multitouch detection
 	const touchHandler = createTouchGestureHandler({
 		onSwipe: (direction) => {
 			if (direction === 'left' && onNext && !isAnimating) {
-				handleNextWithAnimation();
+				handleNext();
 			} else if (direction === 'right' && onPrevious && !isAnimating) {
-				handlePreviousWithAnimation();
+				handlePrevious();
 			}
 		},
 		swipeThreshold: 0.18,
@@ -45,26 +42,28 @@
 			: []
 	);
 
-	// Check for animation direction on mount and picture change
-	onMount(() => {
-		const direction = sessionStorage.getItem('lightboxDirection') as 'left' | 'right' | null;
-		if (direction) {
-			animationDirection = direction;
-		}
-	});
+	let currentPictureId = $state(picture.id);
 
-	// Reset loading state when picture changes
+	// Reset loading state when picture changes, but check cache first
 	$effect(() => {
-		// Access picture.id to make this effect reactive to picture changes
-		void picture.id;
-		imageLoaded = false;
-
-		// Check for animation direction from session storage
-		const direction = sessionStorage.getItem('lightboxDirection') as 'left' | 'right' | null;
-		if (direction) {
-			animationDirection = direction;
+		if (picture.id !== currentPictureId) {
+			currentPictureId = picture.id;
+			imageLoaded = false;
+			isAnimating = false;
 		}
 	});
+
+	// Action to check if image is already cached and set loaded immediately
+	function checkIfCached(node: HTMLImageElement) {
+		// Use nextTick to run after effect has set imageLoaded = false
+		queueMicrotask(() => {
+			if (node.complete && node.naturalHeight !== 0) {
+				// Image is already cached, show it immediately
+				imageLoaded = true;
+				isAnimating = false;
+			}
+		});
+	}
 
 	function toggleInfo() {
 		showInfo = !showInfo;
@@ -72,16 +71,11 @@
 
 	function goToAlbum() {
 		if (albumSlug) {
-			// Clear direction before navigating
-			sessionStorage.removeItem('lightboxDirection');
 			goto(`/albums/${albumSlug}`);
 		}
 	}
 
 	function handleClose() {
-		// Clear direction before closing
-		sessionStorage.removeItem('lightboxDirection');
-
 		if (onClose) {
 			onClose();
 		} else if (albumSlug) {
@@ -91,27 +85,17 @@
 		}
 	}
 
-	function handleNextWithAnimation() {
+	function handleNext() {
 		if (onNext && !isAnimating) {
 			isAnimating = true;
-			// Current image slides out to the left, new image slides in from right
-			outgoingDirection = 'left';
-			sessionStorage.setItem('lightboxDirection', 'right');
-			setTimeout(() => {
-				onNext();
-			}, 150);
+			onNext();
 		}
 	}
 
-	function handlePreviousWithAnimation() {
+	function handlePrevious() {
 		if (onPrevious && !isAnimating) {
 			isAnimating = true;
-			// Current image slides out to the right, new image slides in from left
-			outgoingDirection = 'right';
-			sessionStorage.setItem('lightboxDirection', 'left');
-			setTimeout(() => {
-				onPrevious();
-			}, 150);
+			onPrevious();
 		}
 	}
 
@@ -129,9 +113,9 @@
 		if (e.key === 'Escape') {
 			handleClose();
 		} else if (e.key === 'ArrowRight' && onNext) {
-			handleNextWithAnimation();
+			handleNext();
 		} else if (e.key === 'ArrowLeft' && onPrevious) {
-			handlePreviousWithAnimation();
+			handlePrevious();
 		} else if (e.key === 'i' || e.key === 'I') {
 			toggleInfo();
 		}
@@ -164,23 +148,27 @@
 
 	<!-- Main image -->
 	<div class="group relative max-h-screen max-w-screen-2xl p-4">
-		{#key `${picture.id}-${Date.now()}`}
+		{#key picture.id}
 			<img
 				src="{picture.image_url}?class=fullscreen"
 				alt={picture.description || 'Photo'}
-				class="max-h-screen max-w-full object-contain opacity-0 transition-all duration-300"
+				class="lightbox-image max-h-screen max-w-full object-contain"
+				class:opacity-0={!imageLoaded}
 				class:opacity-100={imageLoaded}
-				class:slide-from-left={animationDirection === 'left'}
-				class:slide-from-right={animationDirection === 'right'}
-				class:slide-to-left={outgoingDirection === 'left'}
-				class:slide-to-right={outgoingDirection === 'right'}
-				onload={() => {
-					imageLoaded = true;
-					isAnimating = false;
-					animationDirection = null;
-					outgoingDirection = null;
-					sessionStorage.removeItem('lightboxDirection');
+				style="view-transition-name: picture-{picture.id}; transition: opacity 0.3s;"
+				onload={(e) => {
+					const img = e.target as HTMLImageElement;
+					// Check if image was already cached (loads synchronously)
+					if (img.complete && img.naturalHeight !== 0) {
+						imageLoaded = true;
+						isAnimating = false;
+					} else {
+						// Image just finished loading
+						imageLoaded = true;
+						isAnimating = false;
+					}
 				}}
+				use:checkIfCached
 			/>
 		{/key}
 
@@ -208,8 +196,8 @@
 	<LightboxControls
 		{showControls}
 		onClose={handleClose}
-		{...onPrevious && { onPrevious: handlePreviousWithAnimation }}
-		{...onNext && { onNext: handleNextWithAnimation }}
+		{...onPrevious && { onPrevious: handlePrevious }}
+		{...onNext && { onNext: handleNext }}
 		onToggleInfo={toggleInfo}
 		{...albumSlug && backLocation === 'home' && { onGoToAlbum: goToAlbum }}
 		{picture}
@@ -225,66 +213,3 @@
 		/>
 	{/if}
 </div>
-
-<style>
-	/* Slide animations for image navigation */
-	@keyframes slideFromLeft {
-		from {
-			transform: translateX(-100%);
-			opacity: 0;
-		}
-		to {
-			transform: translateX(0);
-			opacity: 1;
-		}
-	}
-
-	@keyframes slideFromRight {
-		from {
-			transform: translateX(100%);
-			opacity: 0;
-		}
-		to {
-			transform: translateX(0);
-			opacity: 1;
-		}
-	}
-
-	@keyframes slideToLeft {
-		from {
-			transform: translateX(0);
-			opacity: 1;
-		}
-		to {
-			transform: translateX(-50%);
-			opacity: 0;
-		}
-	}
-
-	@keyframes slideToRight {
-		from {
-			transform: translateX(0);
-			opacity: 1;
-		}
-		to {
-			transform: translateX(50%);
-			opacity: 0;
-		}
-	}
-
-	.slide-from-left {
-		animation: slideFromLeft 0.3s ease-out;
-	}
-
-	.slide-from-right {
-		animation: slideFromRight 0.3s ease-out;
-	}
-
-	.slide-to-left {
-		animation: slideToLeft 0.3s ease-out;
-	}
-
-	.slide-to-right {
-		animation: slideToRight 0.3s ease-out;
-	}
-</style>
