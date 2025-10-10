@@ -13,7 +13,7 @@ export const load: PageLoad = ({ fetch }) => {
 		.then((data) => data.data)
 		.catch((error) => {
 			console.error('[Home Page] Failed to load initial pictures:', error);
-			return [];
+			throw error; // Re-throw to handle in component
 		});
 
 	return {

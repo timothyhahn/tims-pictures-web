@@ -1,12 +1,22 @@
 <script lang="ts">
 	import '../app.css';
-	import { onNavigate } from '$app/navigation';
+	import { onNavigate, beforeNavigate } from '$app/navigation';
 	import Navigation from '$lib/components/Navigation.svelte';
 
 	let { children } = $props();
 
+	let isNavigating = $state(false);
+
+	// Show loading indicator when navigation starts
+	beforeNavigate(() => {
+		isNavigating = true;
+	});
+
 	// Enable View Transitions API for smooth page transitions
 	onNavigate((navigation) => {
+		// Hide loading indicator when navigation completes
+		isNavigating = false;
+
 		if (!document.startViewTransition) return;
 
 		const direction = document.documentElement.dataset.pictureNavDirection;
@@ -78,9 +88,28 @@
 </svelte:head>
 
 <div class="min-h-screen">
+	<!-- Navigation Loading Indicator -->
+	{#if isNavigating}
+		<div
+			class="fixed top-0 right-0 left-0 z-50 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent"
+			style="animation: slide 1.5s ease-in-out infinite;"
+		></div>
+	{/if}
+
 	<Navigation />
 
 	<main class="pt-16 md:ml-64 md:pt-0">
 		{@render children?.()}
 	</main>
 </div>
+
+<style>
+	@keyframes slide {
+		0% {
+			transform: translateX(-100%);
+		}
+		100% {
+			transform: translateX(100%);
+		}
+	}
+</style>

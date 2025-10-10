@@ -13,7 +13,7 @@ export const load: PageLoad = ({ fetch }) => {
 		.then((data) => data.data)
 		.catch((error) => {
 			console.error('Failed to load albums:', error);
-			return [];
+			throw error; // Re-throw to handle in component
 		});
 
 	return {

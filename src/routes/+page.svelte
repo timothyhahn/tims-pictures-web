@@ -4,6 +4,8 @@
 	import PhotoGrid from '$lib/components/PhotoGrid.svelte';
 	import ScrollToTopButton from '$lib/components/ScrollToTopButton.svelte';
 	import PageMetadata from '$lib/components/PageMetadata.svelte';
+	import LoadingState from '$lib/components/LoadingState.svelte';
+	import ErrorState from '$lib/components/ErrorState.svelte';
 	import { saveHomeState, loadHomeState } from '$lib/utils/navigationState';
 	import { useInfiniteScroll } from '$lib/composables/useInfiniteScroll.svelte';
 	import { usePaginatedPictures } from '$lib/composables/usePaginatedPictures.svelte';
@@ -24,6 +26,7 @@
 
 	let initialPicturesLoaded = $state(false);
 	let restoredFromCache = $state(false);
+	let loadError = $state<string | null>(null);
 
 	let scrollEnabled = $derived(initialPicturesLoaded && !pagination.loading && !pagination.done);
 
@@ -48,13 +51,26 @@
 	// Handle initial pictures promise - only if not restored from cache
 	$effect(() => {
 		if (!initialPicturesLoaded && !restoredFromCache) {
-			data.pictures.then((loadedPictures) => {
-				pagination.setPictures(loadedPictures);
-				pagination.setPage(1); // Mark that we've loaded page 1
-				initialPicturesLoaded = true;
-			});
+			data.pictures
+				.then((loadedPictures) => {
+					pagination.setPictures(loadedPictures);
+					pagination.setPage(1); // Mark that we've loaded page 1
+					initialPicturesLoaded = true;
+					loadError = null;
+				})
+				.catch((error) => {
+					console.error('[Home Page] Failed to load pictures:', error);
+					loadError = error?.message || 'Failed to load pictures';
+					initialPicturesLoaded = true; // Stop showing loading state
+				});
 		}
 	});
+
+	function retryLoad() {
+		loadError = null;
+		initialPicturesLoaded = false;
+		window.location.reload();
+	}
 
 	function handlePhotoClick(picture: Picture) {
 		// Save state for returning to home
@@ -74,13 +90,18 @@
 <div class="container mx-auto">
 	<!-- Loading State -->
 	{#if !initialPicturesLoaded}
-		<div class="p-6 text-center">
-			<div class="text-gray-400">Loading pictures...</div>
-		</div>
+		<LoadingState message="Loading pictures..." size="large" />
+	{:else if loadError}
+		<ErrorState
+			message="Failed to load pictures"
+			details={loadError}
+			onRetry={retryLoad}
+			size="large"
+		/>
+	{:else}
+		<!-- Photo Grid -->
+		<PhotoGrid pictures={pagination.pictures} onPhotoClick={handlePhotoClick} />
 	{/if}
-
-	<!-- Photo Grid -->
-	<PhotoGrid pictures={pagination.pictures} onPhotoClick={handlePhotoClick} />
 </div>
 
 <ScrollToTopButton show={scroll.scrollY > 300} {scrollToTop} />

@@ -4,6 +4,8 @@
 	import AlbumHeader from '$lib/components/AlbumHeader.svelte';
 	import MasonryPhotoGrid from '$lib/components/masonry-photo-grid/MasonryPhotoGrid.svelte';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
+	import LoadingState from '$lib/components/LoadingState.svelte';
+	import ErrorState from '$lib/components/ErrorState.svelte';
 	import PageMetadata from '$lib/components/PageMetadata.svelte';
 	import { saveAlbumState, loadAlbumState, savePictureNavState } from '$lib/utils/navigationState';
 	import { useInfiniteScroll } from '$lib/composables/useInfiniteScroll.svelte';
@@ -105,6 +107,12 @@
 
 		goto(`/pictures/${picture.id}?back=album`);
 	});
+
+	function retryLoad() {
+		loadError = null;
+		initialLoad = false;
+		window.location.reload();
+	}
 </script>
 
 <svelte:window bind:scrollY={scroll.scrollY} />
@@ -119,17 +127,15 @@
 <div class="container mx-auto p-6">
 	<AlbumHeader {album} totalPictures={data.album.picture_count} loading={!album} />
 
-	{#if loadError}
-		<div class="py-16 text-center">
-			<p class="mb-4 text-xl text-red-400">Failed to load pictures</p>
-			<p class="text-gray-400">{loadError}</p>
-			<button
-				class="mt-4 rounded bg-gray-600 px-4 py-2 text-white hover:bg-gray-700"
-				onclick={() => window.location.reload()}
-			>
-				Retry
-			</button>
-		</div>
+	{#if !initialLoad}
+		<LoadingState message="Loading pictures..." size="large" />
+	{:else if loadError}
+		<ErrorState
+			message="Failed to load pictures"
+			details={loadError}
+			onRetry={retryLoad}
+			size="large"
+		/>
 	{:else}
 		<MasonryPhotoGrid
 			pictures={pagination.pictures}
