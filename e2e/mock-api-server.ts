@@ -20,7 +20,7 @@ function handleRequest(req: IncomingMessage, res: ServerResponse) {
 	console.log(`[Mock API] ${method} ${url}`);
 
 	// Albums endpoints
-	if (method === 'GET' && url.match(/^\/v1\/albums$/)) {
+	if (method === 'GET' && url.match(/^\/v1\/albums(\?|$)/)) {
 		return sendJSON(res, mockAlbums);
 	}
 
@@ -28,7 +28,7 @@ function handleRequest(req: IncomingMessage, res: ServerResponse) {
 		return sendJSON(res, mockAlbums.data[0]);
 	}
 
-	if (method === 'GET' && url.match(/^\/v1\/albums\/[^/]+$/)) {
+	if (method === 'GET' && url.match(/^\/v1\/albums\/[^/]+(\?|$)/)) {
 		return sendJSON(res, mockAlbums.data[0]);
 	}
 
@@ -41,12 +41,12 @@ function handleRequest(req: IncomingMessage, res: ServerResponse) {
 		return sendJSON(res, mockPictures);
 	}
 
-	if (method === 'GET' && url.match(/^\/v1\/pictures\/[^/]+$/)) {
+	if (method === 'GET' && url.match(/^\/v1\/pictures\/[^/]+(\?|$)/)) {
 		return sendJSON(res, mockPictures.data[0]);
 	}
 
 	// Album validation endpoint
-	if (method === 'POST' && url.match(/^\/v1\/albums\/slug\/[^/]+\/validate$/)) {
+	if (method === 'POST' && url.match(/^\/v1\/albums\/slug\/[^/]+\/validate(\?|$)/)) {
 		return sendJSON(res, { valid: true });
 	}
 

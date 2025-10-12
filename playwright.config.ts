@@ -3,7 +3,7 @@ import { defineConfig } from '@playwright/test';
 export default defineConfig({
 	webServer: [
 		{
-			command: 'node e2e/mock-api-server.ts',
+			command: 'npx tsx e2e/mock-api-server.ts',
 			port: 8080,
 			reuseExistingServer: !process.env.CI
 		},
