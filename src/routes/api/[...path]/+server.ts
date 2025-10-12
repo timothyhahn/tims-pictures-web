@@ -47,10 +47,13 @@ async function handleApiResponse(response: Response) {
 
 function handleApiError(error: unknown, apiUrl: string) {
 	console.error('[API Proxy] Error:', error);
+
+	const errorMessage = error instanceof Error ? error.message : String(error);
+
 	return json(
 		{
 			error: 'Failed to fetch from API',
-			details: error instanceof Error ? error.message : String(error),
+			details: errorMessage,
 			apiUrl
 		},
 		{ status: 500 }

@@ -6,15 +6,11 @@ export const load: PageLoad = ({ fetch }) => {
 	)
 		.then((response) => {
 			if (!response.ok) {
-				throw new Error('Failed to fetch albums');
+				throw new Error(`Failed to fetch albums: ${response.status} ${response.statusText}`);
 			}
 			return response.json();
 		})
-		.then((data) => data.data)
-		.catch((error) => {
-			console.error('Failed to load albums:', error);
-			throw error; // Re-throw to handle in component
-		});
+		.then((data) => data.data);
 
 	return {
 		albums: albumsPromise
