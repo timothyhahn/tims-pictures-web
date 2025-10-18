@@ -21,14 +21,13 @@
 	let showControls = $state(true);
 	let hideControlsTimeout: ReturnType<typeof setTimeout> | null = null;
 	let imageLoaded = $state(false);
-	let isAnimating = $state(false);
 
 	// Create touch gesture handler with multitouch detection
 	const touchHandler = createTouchGestureHandler({
 		onSwipe: (direction) => {
-			if (direction === 'left' && onNext && !isAnimating) {
+			if (direction === 'left' && onNext) {
 				handleNext();
-			} else if (direction === 'right' && onPrevious && !isAnimating) {
+			} else if (direction === 'right' && onPrevious) {
 				handlePrevious();
 			}
 		},
@@ -42,17 +41,6 @@
 			: []
 	);
 
-	let currentPictureId = $state(picture.id);
-
-	// Reset loading state when picture changes, but check cache first
-	$effect(() => {
-		if (picture.id !== currentPictureId) {
-			currentPictureId = picture.id;
-			imageLoaded = false;
-			isAnimating = false;
-		}
-	});
-
 	// Action to check if image is already cached and set loaded immediately
 	function checkIfCached(node: HTMLImageElement) {
 		// Use nextTick to run after effect has set imageLoaded = false
@@ -60,7 +48,6 @@
 			if (node.complete && node.naturalHeight !== 0) {
 				// Image is already cached, show it immediately
 				imageLoaded = true;
-				isAnimating = false;
 			}
 		});
 	}
@@ -86,15 +73,13 @@
 	}
 
 	function handleNext() {
-		if (onNext && !isAnimating) {
-			isAnimating = true;
+		if (onNext) {
 			onNext();
 		}
 	}
 
 	function handlePrevious() {
-		if (onPrevious && !isAnimating) {
-			isAnimating = true;
+		if (onPrevious) {
 			onPrevious();
 		}
 	}
@@ -156,17 +141,8 @@
 				class:opacity-0={!imageLoaded}
 				class:opacity-100={imageLoaded}
 				style="view-transition-name: picture-{picture.id}; transition: opacity 0.3s;"
-				onload={(e) => {
-					const img = e.target as HTMLImageElement;
-					// Check if image was already cached (loads synchronously)
-					if (img.complete && img.naturalHeight !== 0) {
-						imageLoaded = true;
-						isAnimating = false;
-					} else {
-						// Image just finished loading
-						imageLoaded = true;
-						isAnimating = false;
-					}
+				onload={() => {
+					imageLoaded = true;
 				}}
 				use:checkIfCached
 			/>
