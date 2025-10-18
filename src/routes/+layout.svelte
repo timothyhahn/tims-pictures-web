@@ -90,10 +90,9 @@
 <div class="min-h-screen">
 	<!-- Navigation Loading Indicator -->
 	{#if isNavigating}
-		<div
-			class="fixed top-0 right-0 left-0 z-50 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent"
-			style="animation: slide 1.5s ease-in-out infinite;"
-		></div>
+		<div class="fixed top-0 right-0 left-0 z-[100] h-2 overflow-hidden bg-gray-900/30">
+			<div class="loading-bar"></div>
+		</div>
 	{/if}
 
 	<Navigation />
@@ -104,12 +103,30 @@
 </div>
 
 <style>
-	@keyframes slide {
+	.loading-bar {
+		height: 8px;
+		width: 100%;
+		background: linear-gradient(
+			90deg,
+			transparent 0%,
+			transparent 15%,
+			rgba(217, 227, 225, 0.8) 35%,
+			rgb(217, 227, 225) 50%,
+			rgba(217, 227, 225, 0.8) 65%,
+			transparent 85%,
+			transparent 100%
+		);
+		background-size: 200% 100%;
+		animation: shimmer 1.8s ease-in-out infinite;
+		box-shadow: 0 0 20px rgba(217, 227, 225, 0.6);
+	}
+
+	@keyframes shimmer {
 		0% {
-			transform: translateX(-100%);
+			background-position: 200% 0;
 		}
 		100% {
-			transform: translateX(100%);
+			background-position: -200% 0;
 		}
 	}
 </style>

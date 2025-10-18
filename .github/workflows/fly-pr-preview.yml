@@ -1,0 +1,40 @@
+name: Fly.io PR Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, closed]
+
+env:
+  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+  FLY_REGION: ewr
+  FLY_ORG: personal
+
+jobs:
+  deploy:
+    name: Deploy PR Preview
+    runs-on: ubuntu-latest
+
+    # Only run if PR is not from a fork (forks won't have access to secrets)
+    if: github.event.pull_request.head.repo.full_name == github.repository
+
+    # Only run one deployment at a time per PR.
+    concurrency:
+      group: pr-${{ github.event.number }}
+
+    # Deploying apps with this "review" environment allows the URL for the app to be displayed in the PR UI.
+    # Feel free to change the name of this environment.
+    environment:
+      name: review
+      # The script in the `deploy` sets the URL output for each review app.
+      url: ${{ steps.deploy.outputs.url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy PR preview to Fly.io
+        id: deploy
+        uses: superfly/fly-pr-review-apps@1.2.1
+        with:
+          name: tims-pictures-web-pr-${{ github.event.number }}
+          region: ${{ env.FLY_REGION }}
+          org: ${{ env.FLY_ORG }}

@@ -35,11 +35,13 @@
 
 	function handleNext(allPictures: Picture[], currentIndex: number) {
 		if (currentIndex < allPictures.length - 1) {
+			const currentPicture = allPictures[currentIndex];
 			const nextPicture = allPictures[currentIndex + 1];
-			if (!nextPicture) return;
+			if (!currentPicture || !nextPicture) return;
+
 			// Set direction and IDs for view transition
 			document.documentElement.dataset.pictureNavDirection = 'next';
-			document.documentElement.dataset.oldPictureId = picture.id;
+			document.documentElement.dataset.oldPictureId = currentPicture.id;
 			document.documentElement.dataset.newPictureId = nextPicture.id;
 			goto(`/pictures/${nextPicture.id}?back=${backLocation}`);
 		}
@@ -47,11 +49,13 @@
 
 	function handlePrevious(allPictures: Picture[], currentIndex: number) {
 		if (currentIndex > 0) {
+			const currentPicture = allPictures[currentIndex];
 			const prevPicture = allPictures[currentIndex - 1];
-			if (!prevPicture) return;
+			if (!currentPicture || !prevPicture) return;
+
 			// Set direction and IDs for view transition
 			document.documentElement.dataset.pictureNavDirection = 'prev';
-			document.documentElement.dataset.oldPictureId = picture.id;
+			document.documentElement.dataset.oldPictureId = currentPicture.id;
 			document.documentElement.dataset.newPictureId = prevPicture.id;
 			goto(`/pictures/${prevPicture.id}?back=${backLocation}`);
 		}
@@ -79,14 +83,16 @@
 	{@const data = albumData}
 	{@const hasNext = backLocation !== 'home' && data.currentIndex < data.allPictures.length - 1}
 	{@const hasPrev = backLocation !== 'home' && data.currentIndex > 0}
-	<Lightbox
-		{picture}
-		albumSlug={data.albumSlug}
-		{backLocation}
-		{...hasNext && { onNext: () => handleNext(data.allPictures, data.currentIndex) }}
-		{...hasPrev && { onPrevious: () => handlePrevious(data.allPictures, data.currentIndex) }}
-		onClose={() => handleClose(data.albumSlug)}
-	/>
+	{#key picture.id}
+		<Lightbox
+			{picture}
+			albumSlug={data.albumSlug}
+			{backLocation}
+			{...hasNext && { onNext: () => handleNext(data.allPictures, data.currentIndex) }}
+			{...hasPrev && { onPrevious: () => handlePrevious(data.allPictures, data.currentIndex) }}
+			onClose={() => handleClose(data.albumSlug)}
+		/>
+	{/key}
 {:else}
 	<div class="flex h-screen items-center justify-center">
 		<p class="text-gray-400">Loading...</p>
