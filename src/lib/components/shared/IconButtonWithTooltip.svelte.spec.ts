@@ -149,7 +149,7 @@ describe('IconButtonWithTooltip', () => {
 			}
 		});
 
-		const tooltip = container.querySelector('span');
+		const tooltip = container.querySelector('.pointer-events-none');
 		expect(tooltip?.className).toContain('top-full');
 		expect(1).toBe(1);
 	});
@@ -165,7 +165,7 @@ describe('IconButtonWithTooltip', () => {
 			}
 		});
 
-		const tooltip = container.querySelector('span');
+		const tooltip = container.querySelector('.pointer-events-none');
 		expect(tooltip?.className).toContain('bottom-full');
 		expect(1).toBe(1);
 	});
@@ -181,7 +181,7 @@ describe('IconButtonWithTooltip', () => {
 			}
 		});
 
-		const tooltip = container.querySelector('span');
+		const tooltip = container.querySelector('.pointer-events-none');
 		expect(tooltip?.className).toContain('custom-tooltip-position');
 		expect(1).toBe(1);
 	});
@@ -213,7 +213,7 @@ describe('IconButtonWithTooltip', () => {
 			}
 		});
 
-		const tooltip = container.querySelector('span');
+		const tooltip = container.querySelector('.pointer-events-none');
 		expect(tooltip?.className).toContain('bg-black/90');
 		expect(tooltip?.className).toContain('opacity-0');
 		expect(tooltip?.className).toContain('group-hover/tooltip:opacity-100');

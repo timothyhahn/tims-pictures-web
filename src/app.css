@@ -42,6 +42,40 @@ body {
 	font-family: 'Raleway', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
+/* Shared icon depress animation (click feedback) */
+@keyframes icon-depress {
+	0% {
+		transform: scale(1);
+	}
+	40% {
+		transform: scale(0.78);
+	}
+	70% {
+		transform: scale(1.06);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+
+.icon-depress {
+	display: inline-flex;
+}
+
+.icon-pressed .icon-depress {
+	animation: icon-depress 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+}
+
 /* Image fade-in animation */
 .image-fade-in {
 	opacity: 0;

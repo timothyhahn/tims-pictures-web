@@ -2,6 +2,7 @@
 	import { page } from '$app/stores';
 	import { slide, fade } from 'svelte/transition';
 	import { CornerDownRight } from 'lucide-svelte';
+	import AnimatedMenuIcon from './icons/AnimatedMenuIcon.svelte';
 	import { sidebarContext, sidebarRevealed } from '$lib/stores/sidebarContext';
 
 	let mobileMenuOpen = $state(false);
@@ -92,7 +93,7 @@
 	<!-- Contextual Content (scrollable, fills middle) -->
 	{#if $sidebarContext}
 		<div
-			class="context-container mt-4 flex-1 overflow-y-auto border-t border-white/10 pt-4"
+			class="context-container gradient-divider mt-4 flex-1 overflow-y-auto pt-4"
 			transition:fade={{ duration: 200 }}
 		>
 			{#key contextKey}
@@ -151,7 +152,7 @@
 	{/if}
 
 	<!-- External Links -->
-	<div class="mt-auto space-y-2 border-t border-white/10 pt-6">
+	<div class="gradient-divider mt-auto space-y-2 pt-6">
 		{#each externalLinks as link (link.href)}
 			<a
 				href={link.href}
@@ -180,29 +181,17 @@
 			class="rounded-lg p-2 transition-colors hover:bg-white/5"
 			aria-label="Toggle menu"
 		>
-			<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				{#if mobileMenuOpen}
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M6 18L18 6M6 6l12 12"
-					/>
-				{:else}
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						stroke-width="2"
-						d="M4 6h16M4 12h16M4 18h16"
-					/>
-				{/if}
-			</svg>
+			<AnimatedMenuIcon class="h-6 w-6" open={mobileMenuOpen} />
 		</button>
 	</div>
 
 	<!-- Mobile Menu Dropdown -->
 	{#if mobileMenuOpen}
-		<div class="border-t border-white/10" style="background-color: var(--color-bg);">
+		<div
+			class="gradient-divider"
+			style="background-color: var(--color-bg);"
+			transition:slide={{ duration: 200 }}
+		>
 			<ul class="py-2">
 				{#each navItems as item (item.href)}
 					<li>
@@ -235,6 +224,58 @@
 </nav>
 
 <style>
+	.gradient-divider {
+		position: relative;
+	}
+
+	.gradient-divider::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 1px;
+		background:
+			/* static base border */
+			linear-gradient(
+				90deg,
+				transparent,
+				rgba(255, 255, 255, 0.1) 30%,
+				rgba(255, 255, 255, 0.1) 70%,
+				transparent
+			),
+			/* drifting highlight */
+				linear-gradient(
+					90deg,
+					transparent 0%,
+					transparent 30%,
+					rgba(255, 255, 255, 0.06) 45%,
+					transparent 60%,
+					transparent 100%
+				);
+		background-size:
+			100% 100%,
+			300% 100%;
+		background-position:
+			0 0,
+			100% 0;
+		animation: divider-shimmer 25s ease-in-out infinite;
+	}
+
+	@keyframes divider-shimmer {
+		0%,
+		100% {
+			background-position:
+				0 0,
+				100% 0;
+		}
+		50% {
+			background-position:
+				0 0,
+				-100% 0;
+		}
+	}
+
 	.sidebar-arrow {
 		display: inline-flex;
 		animation: arrow-slide-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);

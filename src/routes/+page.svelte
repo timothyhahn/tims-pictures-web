@@ -140,7 +140,7 @@
 					}}
 					class="group relative mb-6 block overflow-hidden rounded"
 				>
-					<div class="relative min-h-[40vh]">
+					<div class="relative min-h-0 sm:min-h-[40vh]">
 						<div
 							class="hero-skeleton absolute inset-0 flex items-center justify-center bg-gray-800"
 						>
