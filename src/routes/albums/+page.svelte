@@ -36,7 +36,7 @@
 	<!-- Albums Grid -->
 	{#await data.albums}
 		<div out:fade={{ duration: 200 }} class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-			{#each Array(6) as _}
+			{#each Array.from({ length: 6 }, (__, i) => i) as i (i)}
 				<div class="overflow-hidden rounded bg-gray-800">
 					<div class="aspect-video w-full animate-pulse bg-gray-700/50"></div>
 					<div class="p-4">

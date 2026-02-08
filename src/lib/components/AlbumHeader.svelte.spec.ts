@@ -20,8 +20,8 @@ describe('AlbumHeader', () => {
 	};
 
 	it('renders album name', () => {
-		const { getByText } = render(AlbumHeader, { props: { album: mockAlbum, totalPictures: 10 } });
-		expect(getByText('Test Album')).toBeTruthy();
+		const { getByRole } = render(AlbumHeader, { props: { album: mockAlbum, totalPictures: 10 } });
+		expect(getByRole('heading', { name: 'Test Album' })).toBeTruthy();
 	});
 
 	it('renders album description when provided', () => {
@@ -65,9 +65,9 @@ describe('AlbumHeader', () => {
 	});
 
 	it('shows album content when album is provided, even if loading is true', () => {
-		const { getByText } = render(AlbumHeader, {
+		const { getByRole } = render(AlbumHeader, {
 			props: { album: mockAlbum, totalPictures: 10, loading: true }
 		});
-		expect(getByText('Test Album')).toBeTruthy();
+		expect(getByRole('heading', { name: 'Test Album' })).toBeTruthy();
 	});
 });
