@@ -58,7 +58,7 @@
 				{#each albums as album, i (album.slug)}
 					<AlbumCard
 						{album}
-						tier={getTier(album)}
+						tier={items[i]?.tier ?? 'small'}
 						smColSpan={smLayout[i]?.colSpan ?? 1}
 						smRowSpan={smLayout[i]?.rowSpan ?? 1}
 						lgColSpan={lgLayout[i]?.colSpan ?? 1}
@@ -88,10 +88,10 @@
 
 	@keyframes title-reveal {
 		from {
-			clip-path: inset(0 100% 0 0);
+			clip-path: inset(-10% 100% -10% 0);
 		}
 		to {
-			clip-path: inset(0 0 0 0);
+			clip-path: inset(-10% 0% -10% 0);
 		}
 	}
 

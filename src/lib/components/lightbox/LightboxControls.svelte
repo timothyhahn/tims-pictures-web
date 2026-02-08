@@ -73,7 +73,7 @@
 					<a href="/albums" class="transition-colors hover:text-white">Albums</a>
 					<span class="mx-2">/</span>
 					<a href="/albums/{albumSlug}" class="transition-colors hover:text-white">{albumName}</a>
-					{#if currentIndex !== undefined && currentIndex >= 0 && totalCount}
+					{#if currentIndex !== undefined && currentIndex >= 0 && totalCount !== undefined}
 						<span class="mx-2">/</span>
 						<span class="text-gray-300">Photo {currentIndex + 1} of {totalCount}</span>
 					{/if}

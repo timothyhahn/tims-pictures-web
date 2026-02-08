@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { onDestroy } from 'svelte';
 	import { fade } from 'svelte/transition';
 	import ScrollToTopButton from '$lib/components/ScrollToTopButton.svelte';
 	import AlbumHeader from '$lib/components/AlbumHeader.svelte';
@@ -105,8 +106,9 @@
 				pictureCount: data.album.picture_count
 			});
 		}
-		return () => clearSidebarContext();
 	});
+
+	onDestroy(clearSidebarContext);
 
 	const handlePhotoClick = handlePrimaryClick((_event: MouseEvent, picture: Picture) => {
 		// Save state for returning to album

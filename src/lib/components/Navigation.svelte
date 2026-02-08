@@ -78,12 +78,12 @@
 			<li transition:slide={{ duration: 200 }}>
 				<a
 					href="/albums/{$sidebarContext.albumSlug}"
-					class="flex items-center gap-2 overflow-hidden rounded-lg bg-white/10 py-1.5 pr-4 pl-8 text-sm text-white transition-colors hover:text-white"
+					class="flex items-start gap-2 rounded-lg bg-white/10 py-1.5 pr-4 pl-8 text-sm text-white transition-colors hover:text-white"
 				>
-					<span class="sidebar-arrow text-gray-500"
+					<span class="sidebar-arrow mt-0.5 shrink-0 text-gray-500"
 						><CornerDownRight size={14} strokeWidth={2.5} /></span
 					>
-					<span class="breadcrumb-name truncate">{$sidebarContext.albumName}</span>
+					<span class="breadcrumb-name">{$sidebarContext.albumName}</span>
 				</a>
 			</li>
 		{/if}
@@ -113,7 +113,7 @@
 								{$sidebarContext.albumDescription}
 							</p>
 						{/if}
-						{#if $sidebarContext.albumPictureCount}
+						{#if $sidebarContext.albumPictureCount !== undefined}
 							<p class="mb-3 px-1 text-xs text-gray-500">
 								{#if $sidebarContext.currentIndex !== undefined && $sidebarContext.currentIndex >= 0}
 									Photo {$sidebarContext.currentIndex + 1} of {$sidebarContext.albumPictureCount}

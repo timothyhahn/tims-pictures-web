@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
+	import { onDestroy } from 'svelte';
 	import Lightbox from '$lib/components/lightbox/Lightbox.svelte';
 	import PageMetadata from '$lib/components/PageMetadata.svelte';
 	import { setSidebarContext, clearSidebarContext } from '$lib/stores/sidebarContext';
@@ -58,8 +59,9 @@
 				currentIndex: albumData.currentIndex
 			});
 		}
-		return () => clearSidebarContext();
 	});
+
+	onDestroy(clearSidebarContext);
 
 	function handleNext(allPictures: Picture[], currentIndex: number) {
 		if (currentIndex < allPictures.length - 1) {

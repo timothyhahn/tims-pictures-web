@@ -41,10 +41,10 @@
 
 	@keyframes title-reveal {
 		from {
-			clip-path: inset(0 100% 0 0);
+			clip-path: inset(-10% 100% -10% 0);
 		}
 		to {
-			clip-path: inset(0 0 0 0);
+			clip-path: inset(-10% 0% -10% 0);
 		}
 	}
 </style>

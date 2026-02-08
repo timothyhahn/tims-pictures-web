@@ -30,6 +30,7 @@
 </script>
 
 <button
+	type="button"
 	onclick={handleClick}
 	class="group/tooltip pointer-events-auto relative ml-auto cursor-pointer rounded-lg p-2 text-white transition-colors hover:bg-white/20 {buttonClass}"
 	aria-label="Close"
