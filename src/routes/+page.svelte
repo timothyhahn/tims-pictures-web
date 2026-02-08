@@ -7,6 +7,7 @@
 	import PageMetadata from '$lib/components/PageMetadata.svelte';
 	import SkeletonGrid from '$lib/components/SkeletonGrid.svelte';
 	import ErrorState from '$lib/components/ErrorState.svelte';
+	import { clearSidebarContext } from '$lib/stores/sidebarContext';
 	import { saveHomeState, loadHomeState } from '$lib/utils/navigationState';
 	import { useInfiniteScroll } from '$lib/composables/useInfiniteScroll.svelte';
 	import { usePaginatedPictures } from '$lib/composables/usePaginatedPictures.svelte';
@@ -50,6 +51,7 @@
 	});
 
 	onMount(() => {
+		clearSidebarContext();
 		const savedState = loadHomeState();
 		if (savedState) {
 			pagination.setState(savedState);

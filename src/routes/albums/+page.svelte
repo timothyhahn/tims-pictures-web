@@ -1,10 +1,16 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { fade } from 'svelte/transition';
 	import AlbumCard from '$lib/components/album-card/AlbumCard.svelte';
 	import ErrorState from '$lib/components/ErrorState.svelte';
+	import { clearSidebarContext } from '$lib/stores/sidebarContext';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
+
+	onMount(() => {
+		clearSidebarContext();
+	});
 
 	function retryLoad() {
 		window.location.reload();

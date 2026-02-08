@@ -45,9 +45,7 @@ body {
 /* Image fade-in animation */
 .image-fade-in {
 	opacity: 0;
-	transition:
-		opacity 0.8s ease-in-out,
-		scale 0.7s ease-out;
+	transition: opacity 0.8s ease-in-out;
 }
 
 .image-fade-in.loaded {
@@ -56,13 +54,15 @@ body {
 
 /* View Transitions - Directional slide for picture navigation */
 
-/* Slide animations - keep opacity at 1 to prevent fade */
+/* Slide animations for picture navigation */
 @keyframes slide-out-to-left {
 	from {
 		transform: translateX(0);
+		opacity: 1;
 	}
 	to {
 		transform: translateX(-100%);
+		opacity: 0;
 	}
 }
 
@@ -78,9 +78,11 @@ body {
 @keyframes slide-out-to-right {
 	from {
 		transform: translateX(0);
+		opacity: 1;
 	}
 	to {
 		transform: translateX(100%);
+		opacity: 0;
 	}
 }
 
@@ -91,6 +93,19 @@ body {
 	to {
 		transform: translateX(0);
 	}
+}
+
+/* Sidebar and info panels stay on top during view transitions */
+::view-transition-group(sidebar),
+::view-transition-group(lightbox-info) {
+	z-index: 100;
+}
+
+::view-transition-old(sidebar),
+::view-transition-new(sidebar),
+::view-transition-old(lightbox-info),
+::view-transition-new(lightbox-info) {
+	animation: none;
 }
 
 /* Default: no special animation (will use zoom morph for pictures) */

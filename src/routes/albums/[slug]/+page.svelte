@@ -14,6 +14,7 @@
 	import { handlePrimaryClick } from '$lib/utils/photoClick';
 	import { scrollToTop, restoreScrollPosition } from '$lib/utils/scroll';
 	import { PICTURES_PER_PAGE, COLUMN_LAYOUT_THRESHOLD } from '$lib/constants';
+	import { setSidebarContext, clearSidebarContext } from '$lib/stores/sidebarContext';
 	import type { PageData } from './$types';
 	import type { Picture } from '$lib/api/types';
 
@@ -91,6 +92,20 @@
 					initialLoad = true; // Prevent infinite loading state
 				});
 		}
+	});
+
+	// Set sidebar context for this album
+	$effect(() => {
+		if (album) {
+			setSidebarContext({
+				type: 'album',
+				albumName: album.name,
+				albumSlug: album.slug,
+				description: album.description,
+				pictureCount: data.album.picture_count
+			});
+		}
+		return () => clearSidebarContext();
 	});
 
 	const handlePhotoClick = handlePrimaryClick((_event: MouseEvent, picture: Picture) => {

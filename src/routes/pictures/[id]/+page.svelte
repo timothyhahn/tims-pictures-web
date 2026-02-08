@@ -3,6 +3,8 @@
 	import { page } from '$app/stores';
 	import Lightbox from '$lib/components/lightbox/Lightbox.svelte';
 	import PageMetadata from '$lib/components/PageMetadata.svelte';
+	import { setSidebarContext, clearSidebarContext } from '$lib/stores/sidebarContext';
+	import { formatMetadata } from '$lib/utils/metadata';
 	import type { PageData } from './$types';
 	import type { Picture } from '$lib/api/types';
 
@@ -11,12 +13,15 @@
 	interface AlbumData {
 		albumSlug: string;
 		albumName: string;
+		albumDescription?: string;
+		albumPictureCount: number;
 		allPictures: Picture[];
 		currentIndex: number;
 	}
 
 	let albumData = $state<AlbumData | null>(null);
 	let lightboxControlsVisible = $state(true);
+	let lightboxInfoVisible = $state(false);
 
 	// Get the 'back' query param, default to 'album'
 	let backLocation = $derived($page.url.searchParams.get('back') || 'album');
@@ -33,6 +38,26 @@
 			.catch(() => {
 				// Errors will be caught by SvelteKit
 			});
+	});
+
+	// Set sidebar context with EXIF data
+	$effect(() => {
+		if (picture && albumData) {
+			const metadata = picture.metadata && typeof picture.metadata === 'object'
+				? formatMetadata(picture.metadata as Record<string, string>)
+				: [];
+			setSidebarContext({
+				type: 'picture',
+				albumName: albumData.albumName,
+				albumSlug: albumData.albumSlug,
+				...(albumData.albumDescription && { albumDescription: albumData.albumDescription }),
+				albumPictureCount: albumData.albumPictureCount,
+				...(picture.description && { description: picture.description }),
+				metadata,
+				currentIndex: albumData.currentIndex
+			});
+		}
+		return () => clearSidebarContext();
 	});
 
 	function handleNext(allPictures: Picture[], currentIndex: number) {
@@ -94,6 +119,7 @@
 			currentIndex={data.currentIndex}
 			totalCount={data.allPictures.length}
 			bind:showControls={lightboxControlsVisible}
+			bind:showInfo={lightboxInfoVisible}
 			{...hasNext && { onNext: () => handleNext(data.allPictures, data.currentIndex) }}
 			{...hasPrev && { onPrevious: () => handlePrevious(data.allPictures, data.currentIndex) }}
 			onClose={() => handleClose(data.albumSlug)}

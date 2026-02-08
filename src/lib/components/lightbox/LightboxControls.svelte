@@ -8,6 +8,7 @@
 
 	interface Props {
 		showControls: boolean;
+		showSidebar?: boolean;
 		onClose: () => void;
 		onPrevious?: () => void;
 		onNext?: () => void;
@@ -22,6 +23,7 @@
 
 	let {
 		showControls,
+		showSidebar = false,
 		onClose,
 		onPrevious,
 		onNext,
@@ -34,6 +36,9 @@
 		totalCount
 	}: Props = $props();
 
+	// When sidebar is visible, extend gradient bars left to cover full viewport
+	let gradientStyle = $derived(showSidebar ? 'left: -16rem; padding-left: calc(16rem + 1rem);' : '');
+
 	async function handleDownload(e: MouseEvent) {
 		e.preventDefault();
 		trackEvent('image downloaded', picture.id);
@@ -44,9 +49,9 @@
 {#if showControls}
 	<div class="pointer-events-none absolute inset-0 transition-opacity duration-300">
 		<!-- Top bar with close button and breadcrumb -->
-		<div class="absolute top-0 right-0 left-0 flex items-center justify-between bg-gradient-to-b from-black/90 via-black/50 to-transparent p-4 pb-12">
+		<div class="absolute top-0 right-0 left-0 flex items-center justify-between bg-gradient-to-b from-black/90 via-black/50 to-transparent p-4 pb-12" style={gradientStyle}>
 			{#if albumName && albumSlug}
-				<nav aria-label="Breadcrumb" class="pointer-events-auto text-xl text-gray-200">
+				<nav aria-label="Breadcrumb" class="pointer-events-auto text-xl text-gray-200 md:hidden">
 					{#if backLocation === 'home'}
 						<a href="/albums/{albumSlug}" class="flex items-center gap-1.5 transition-colors hover:text-white">
 							<Album size={20} />
@@ -54,10 +59,10 @@
 						</a>
 					{:else}
 						<a href="/albums" class="transition-colors hover:text-white">Albums</a>
-						<span class="mx-1.5 text-gray-400">/</span>
+						<span class="mx-2">/</span>
 						<a href="/albums/{albumSlug}" class="transition-colors hover:text-white">{albumName}</a>
 						{#if currentIndex !== undefined && currentIndex >= 0 && totalCount}
-							<span class="mx-1.5 text-gray-400">/</span>
+							<span class="mx-2">/</span>
 							<span class="text-gray-300">Photo {currentIndex + 1} of {totalCount}</span>
 						{/if}
 					{/if}
@@ -105,7 +110,7 @@
 		{/if}
 
 		<!-- Bottom controls -->
-		<div class="absolute bottom-0 right-0 left-0 flex gap-2 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-4 pt-12">
+		<div class="absolute bottom-0 right-0 left-0 flex gap-2 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-4 pt-12" style={gradientStyle}>
 			<IconButtonWithTooltip
 				icon={Info}
 				label="Toggle info"
