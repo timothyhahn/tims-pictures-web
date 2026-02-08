@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { fade } from 'svelte/transition';
-	import PhotoGrid from '$lib/components/PhotoGrid.svelte';
+	import MasonryPhotoGrid from '$lib/components/masonry-photo-grid/MasonryPhotoGrid.svelte';
 	import ScrollToTopButton from '$lib/components/ScrollToTopButton.svelte';
 	import PageMetadata from '$lib/components/PageMetadata.svelte';
 	import SkeletonGrid from '$lib/components/SkeletonGrid.svelte';
@@ -10,6 +10,7 @@
 	import { saveHomeState, loadHomeState } from '$lib/utils/navigationState';
 	import { useInfiniteScroll } from '$lib/composables/useInfiniteScroll.svelte';
 	import { usePaginatedPictures } from '$lib/composables/usePaginatedPictures.svelte';
+	import { isPrimaryClick, handlePrimaryClick } from '$lib/utils/photoClick';
 	import { scrollToTop, restoreScrollPosition } from '$lib/utils/scroll';
 	import type { Picture } from '$lib/api/types';
 	import type { PageData } from './$types';
@@ -28,6 +29,15 @@
 	let initialPicturesLoaded = $state(false);
 	let restoredFromCache = $state(false);
 	let loadError = $state<string | null>(null);
+
+	// Hero image: pick a random index from the first 3 pictures, stable across re-renders
+	let heroIndex = $state(Math.floor(Math.random() * 3));
+	let heroPicture = $derived(
+		pagination.pictures.length > 0 ? pagination.pictures[Math.min(heroIndex, pagination.pictures.length - 1)] : null
+	);
+	let gridPictures = $derived(
+		heroPicture ? pagination.pictures.filter((p) => p.id !== heroPicture.id) : pagination.pictures
+	);
 
 	let scrollEnabled = $derived(initialPicturesLoaded && !pagination.loading && !pagination.done);
 
@@ -73,14 +83,19 @@
 		window.location.reload();
 	}
 
-	function handlePhotoClick(picture: Picture) {
-		// Save state for returning to home
+	function handleHeroClick(picture: Picture) {
 		saveHomeState(pagination.pictures, pagination.page, pagination.done, scroll.scrollY);
-
-		// For home page, we don't save pictureNavState since pictures are from different albums
-		// Navigation will use the API data instead
-
 		goto(`/pictures/${picture.id}?back=home`);
+	}
+
+	const handleGridPhotoClick = handlePrimaryClick((_event: MouseEvent, picture: Picture) => {
+		saveHomeState(pagination.pictures, pagination.page, pagination.done, scroll.scrollY);
+		goto(`/pictures/${picture.id}?back=home`);
+	});
+
+	function handleHeroImageLoad(event: Event) {
+		const img = event.target as HTMLImageElement;
+		img.classList.add('loaded');
 	}
 </script>
 
@@ -88,11 +103,12 @@
 
 <PageMetadata title="Tim's Pictures" />
 
-<div class="container mx-auto">
-	<!-- Loading State -->
+<div class="container mx-auto p-6">
 	{#if !initialPicturesLoaded}
 		<div out:fade={{ duration: 200 }}>
-			<SkeletonGrid count={12} aspectRatio="1" />
+			<!-- Hero skeleton -->
+			<div class="mb-6 aspect-video w-full animate-pulse rounded bg-gray-800"></div>
+			<SkeletonGrid count={9} columns="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" aspectRatio="3/2" padding="" />
 		</div>
 	{:else if loadError}
 		<ErrorState
@@ -102,9 +118,46 @@
 			size="large"
 		/>
 	{:else}
-		<!-- Photo Grid -->
 		<div in:fade={{ duration: 300, delay: 100 }}>
-			<PhotoGrid pictures={pagination.pictures} onPhotoClick={handlePhotoClick} />
+			<!-- Hero Image -->
+			{#if heroPicture}
+				<a
+					href="/pictures/{heroPicture.id}?back=home"
+					onclick={(e) => {
+						if (isPrimaryClick(e)) {
+							e.preventDefault();
+							handleHeroClick(heroPicture);
+						}
+					}}
+					class="group relative mb-6 block overflow-hidden rounded"
+				>
+					<div class="relative">
+						<div class="absolute inset-0 animate-pulse bg-gray-700/50"></div>
+						<img
+							src="{heroPicture.image_url}?class=full-width"
+							alt={heroPicture.description || (heroPicture.album_name ? `Photo from ${heroPicture.album_name}` : 'Photo')}
+							class="image-fade-in relative w-full max-h-[60vh] object-cover"
+							style="view-transition-name: picture-{heroPicture.id};"
+							onload={handleHeroImageLoad}
+						/>
+					</div>
+					{#if heroPicture.album_name}
+						<div class="pointer-events-none absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-4 pb-4 pt-8 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+							<span class="text-sm text-white/90">Album: {heroPicture.album_name}</span>
+						</div>
+					{/if}
+				</a>
+			{/if}
+
+			<!-- Masonry Grid -->
+			<MasonryPhotoGrid
+				pictures={gridPictures}
+				albumIdentifier="home-recent"
+				totalPictureCount={MAX_PICTURES}
+				backLocation="home"
+				showAlbumBadge
+				onPhotoClick={handleGridPhotoClick}
+			/>
 		</div>
 	{/if}
 </div>
