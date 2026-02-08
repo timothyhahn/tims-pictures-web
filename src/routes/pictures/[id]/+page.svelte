@@ -43,9 +43,10 @@
 	// Set sidebar context with EXIF data
 	$effect(() => {
 		if (picture && albumData) {
-			const metadata = picture.metadata && typeof picture.metadata === 'object'
-				? formatMetadata(picture.metadata as Record<string, string>)
-				: [];
+			const metadata =
+				picture.metadata && typeof picture.metadata === 'object'
+					? formatMetadata(picture.metadata as Record<string, string>)
+					: [];
 			setSidebarContext({
 				type: 'picture',
 				albumName: albumData.albumName,

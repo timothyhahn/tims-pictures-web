@@ -48,7 +48,9 @@
 <!-- Desktop Navigation - Left Sidebar -->
 <nav
 	class="fixed top-0 left-0 z-40 hidden h-screen w-64 flex-col p-6 text-white md:flex"
-	style="background-color: var(--color-bg);{$sidebarRevealed ? ' view-transition-name: sidebar;' : ''}"
+	style="background-color: var(--color-bg);{$sidebarRevealed
+		? ' view-transition-name: sidebar;'
+		: ''}"
 >
 	<!-- Logo/Branding -->
 	<div class="mb-8">
@@ -61,7 +63,8 @@
 			<li>
 				<a
 					href={item.href}
-					class="block rounded-lg px-4 py-2 transition-colors {isActive(item.href) || (item.href === '/albums' && isAlbumsRelated() && !$sidebarContext?.albumName)
+					class="block rounded-lg px-4 py-2 transition-colors {isActive(item.href) ||
+					(item.href === '/albums' && isAlbumsRelated() && !$sidebarContext?.albumName)
 						? 'bg-white/10 text-white'
 						: 'text-gray-400 hover:bg-white/5 hover:text-white'}"
 				>
@@ -75,9 +78,11 @@
 			<li transition:slide={{ duration: 200 }}>
 				<a
 					href="/albums/{$sidebarContext.albumSlug}"
-					class="flex items-center gap-2 overflow-hidden rounded-lg py-1.5 pl-8 pr-4 text-sm transition-colors hover:text-white bg-white/10 text-white"
+					class="flex items-center gap-2 overflow-hidden rounded-lg bg-white/10 py-1.5 pr-4 pl-8 text-sm text-white transition-colors hover:text-white"
 				>
-					<span class="sidebar-arrow text-gray-500"><CornerDownRight size={14} strokeWidth={2.5} /></span>
+					<span class="sidebar-arrow text-gray-500"
+						><CornerDownRight size={14} strokeWidth={2.5} /></span
+					>
 					<span class="breadcrumb-name truncate">{$sidebarContext.albumName}</span>
 				</a>
 			</li>
@@ -86,51 +91,59 @@
 
 	<!-- Contextual Content (scrollable, fills middle) -->
 	{#if $sidebarContext}
-		<div class="context-container mt-4 flex-1 overflow-y-auto border-t border-white/10 pt-4" transition:fade={{ duration: 200 }}>
+		<div
+			class="context-container mt-4 flex-1 overflow-y-auto border-t border-white/10 pt-4"
+			transition:fade={{ duration: 200 }}
+		>
 			{#key contextKey}
-			<div class="context-fade" transition:fade={{ duration: 300 }}>
-			{#if $sidebarContext.type === 'album'}
-				{#if $sidebarContext.description}
-					<p class="mb-3 px-1 text-sm leading-relaxed text-gray-400">{$sidebarContext.description}</p>
-				{/if}
-				<p class="px-1 text-xs text-gray-500">
-					{$sidebarContext.pictureCount}
-					{$sidebarContext.pictureCount === 1 ? 'photo' : 'photos'}
-				</p>
-			{:else if $sidebarContext.type === 'picture'}
-				{#if $sidebarContext.albumDescription}
-					<p class="mb-3 px-1 text-sm leading-relaxed text-gray-400">{$sidebarContext.albumDescription}</p>
-				{/if}
-				{#if $sidebarContext.albumPictureCount}
-					<p class="mb-3 px-1 text-xs text-gray-500">
-						{#if $sidebarContext.currentIndex !== undefined && $sidebarContext.currentIndex >= 0}
-							Photo {$sidebarContext.currentIndex + 1} of {$sidebarContext.albumPictureCount}
-						{:else}
-							{$sidebarContext.albumPictureCount} {$sidebarContext.albumPictureCount === 1 ? 'photo' : 'photos'}
+				<div class="context-fade" transition:fade={{ duration: 300 }}>
+					{#if $sidebarContext.type === 'album'}
+						{#if $sidebarContext.description}
+							<p class="mb-3 px-1 text-sm leading-relaxed text-gray-400">
+								{$sidebarContext.description}
+							</p>
 						{/if}
-					</p>
-				{/if}
-				{#if $sidebarContext.description}
-					<div class="mb-4">
-						<h3 class="mb-1 px-1 text-xs font-semibold text-gray-500">Description</h3>
-						<p class="px-1 text-sm text-gray-300">{$sidebarContext.description}</p>
-					</div>
-				{/if}
-				{#if $sidebarContext.metadata.length > 0}
-					<div>
-						<h3 class="mb-2 px-1 text-xs font-semibold text-gray-500">Details</h3>
-						<dl class="space-y-1.5 text-xs">
-							{#each $sidebarContext.metadata as item (item.label)}
-								<div class="flex justify-between px-1">
-									<dt class="text-gray-500">{item.label}</dt>
-									<dd class="text-right text-gray-300">{item.value}</dd>
-								</div>
-							{/each}
-						</dl>
-					</div>
-				{/if}
-			{/if}
-			</div>
+						<p class="px-1 text-xs text-gray-500">
+							{$sidebarContext.pictureCount}
+							{$sidebarContext.pictureCount === 1 ? 'photo' : 'photos'}
+						</p>
+					{:else if $sidebarContext.type === 'picture'}
+						{#if $sidebarContext.albumDescription}
+							<p class="mb-3 px-1 text-sm leading-relaxed text-gray-400">
+								{$sidebarContext.albumDescription}
+							</p>
+						{/if}
+						{#if $sidebarContext.albumPictureCount}
+							<p class="mb-3 px-1 text-xs text-gray-500">
+								{#if $sidebarContext.currentIndex !== undefined && $sidebarContext.currentIndex >= 0}
+									Photo {$sidebarContext.currentIndex + 1} of {$sidebarContext.albumPictureCount}
+								{:else}
+									{$sidebarContext.albumPictureCount}
+									{$sidebarContext.albumPictureCount === 1 ? 'photo' : 'photos'}
+								{/if}
+							</p>
+						{/if}
+						{#if $sidebarContext.description}
+							<div class="mb-4">
+								<h3 class="mb-1 px-1 text-xs font-semibold text-gray-500">Description</h3>
+								<p class="px-1 text-sm text-gray-300">{$sidebarContext.description}</p>
+							</div>
+						{/if}
+						{#if $sidebarContext.metadata.length > 0}
+							<div>
+								<h3 class="mb-2 px-1 text-xs font-semibold text-gray-500">Details</h3>
+								<dl class="space-y-1.5 text-xs">
+									{#each $sidebarContext.metadata as item (item.label)}
+										<div class="flex justify-between px-1">
+											<dt class="text-gray-500">{item.label}</dt>
+											<dd class="text-right text-gray-300">{item.value}</dd>
+										</div>
+									{/each}
+								</dl>
+							</div>
+						{/if}
+					{/if}
+				</div>
 			{/key}
 		</div>
 	{:else}

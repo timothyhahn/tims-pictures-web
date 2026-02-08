@@ -47,11 +47,7 @@
 </script>
 
 {#if href}
-	<a
-		{href}
-		class={sharedClass}
-		aria-label={label}
-	>
+	<a {href} class={sharedClass} aria-label={label}>
 		<IconComponent class={iconSizeClass} />
 		<span
 			class="pointer-events-none absolute rounded bg-black/90 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100 {tooltipPositionClass}"
@@ -60,11 +56,7 @@
 		</span>
 	</a>
 {:else}
-	<button
-		{onclick}
-		class={sharedClass}
-		aria-label={label}
-	>
+	<button {onclick} class={sharedClass} aria-label={label}>
 		<IconComponent class={iconSizeClass} />
 		<span
 			class="pointer-events-none absolute rounded bg-black/90 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100 {tooltipPositionClass}"

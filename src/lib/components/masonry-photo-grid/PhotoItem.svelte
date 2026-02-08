@@ -11,7 +11,14 @@
 		showAlbumBadge?: boolean;
 	}
 
-	let { picture, imageClass, itemClass, backLocation, onPhotoClick, showAlbumBadge = false }: Props = $props();
+	let {
+		picture,
+		imageClass,
+		itemClass,
+		backLocation,
+		onPhotoClick,
+		showAlbumBadge = false
+	}: Props = $props();
 
 	// Determine if we should fill height based on layout type
 	// Columns layout (break-inside-avoid) should use natural height

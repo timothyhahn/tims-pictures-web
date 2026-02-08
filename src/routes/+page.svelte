@@ -34,7 +34,9 @@
 	// Hero image: pick a random index from the first 3 pictures, stable across re-renders
 	let heroIndex = $state(Math.floor(Math.random() * 3));
 	let heroPicture = $derived(
-		pagination.pictures.length > 0 ? pagination.pictures[Math.min(heroIndex, pagination.pictures.length - 1)] : null
+		pagination.pictures.length > 0
+			? pagination.pictures[Math.min(heroIndex, pagination.pictures.length - 1)]
+			: null
 	);
 	let gridPictures = $derived(
 		heroPicture ? pagination.pictures.filter((p) => p.id !== heroPicture.id) : pagination.pictures
@@ -110,7 +112,12 @@
 		<div out:fade={{ duration: 200 }}>
 			<!-- Hero skeleton -->
 			<div class="mb-6 aspect-video w-full animate-pulse rounded bg-gray-800"></div>
-			<SkeletonGrid count={9} columns="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" aspectRatio="3/2" padding="" />
+			<SkeletonGrid
+				count={9}
+				columns="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+				aspectRatio="3/2"
+				padding=""
+			/>
 		</div>
 	{:else if loadError}
 		<ErrorState
@@ -134,19 +141,26 @@
 					class="group relative mb-6 block overflow-hidden rounded"
 				>
 					<div class="relative min-h-[40vh]">
-						<div class="hero-skeleton absolute inset-0 flex items-center justify-center bg-gray-800">
-							<span class="hero-skeleton-text text-2xl font-thin tracking-widest text-gray-500">Loading Tim's Pictures</span>
+						<div
+							class="hero-skeleton absolute inset-0 flex items-center justify-center bg-gray-800"
+						>
+							<span class="hero-skeleton-text text-2xl font-thin tracking-widest text-gray-500"
+								>Loading Tim's Pictures</span
+							>
 						</div>
 						<img
 							src="{heroPicture.image_url}?class=full-width"
-							alt={heroPicture.description || (heroPicture.album_name ? `Photo from ${heroPicture.album_name}` : 'Photo')}
-							class="hero-drift image-fade-in relative w-full max-h-[60vh] object-cover"
+							alt={heroPicture.description ||
+								(heroPicture.album_name ? `Photo from ${heroPicture.album_name}` : 'Photo')}
+							class="hero-drift image-fade-in relative max-h-[60vh] w-full object-cover"
 							style="view-transition-name: picture-{heroPicture.id};"
 							onload={handleHeroImageLoad}
 						/>
 					</div>
 					{#if heroPicture.album_name}
-						<div class="pointer-events-none absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-4 pb-4 pt-8 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+						<div
+							class="pointer-events-none absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/70 to-transparent px-4 pt-8 pb-4 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+						>
 							<span class="text-sm text-white/90">Album: {heroPicture.album_name}</span>
 						</div>
 					{/if}

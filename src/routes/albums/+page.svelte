@@ -48,14 +48,21 @@
 		</div>
 	{:then albums}
 		{#if albums.length > 0}
-			{@const items = albums.map((a: Album) => ({ pictureCount: a.picture_count, tier: getTier(a) }))}
+			{@const items = albums.map((a: Album) => ({
+				pictureCount: a.picture_count,
+				tier: getTier(a)
+			}))}
 			{@const smLayout = computeAlbumGridLayout(items, 2)}
 			{@const lgLayout = computeAlbumGridLayout(items, 3)}
 			<div in:fade={{ duration: 300, delay: 100 }} class="album-grid">
 				{#each albums as album, i (album.slug)}
-					<AlbumCard {album} tier={getTier(album)}
-						smColSpan={smLayout[i]?.colSpan ?? 1} smRowSpan={smLayout[i]?.rowSpan ?? 1}
-						lgColSpan={lgLayout[i]?.colSpan ?? 1} lgRowSpan={lgLayout[i]?.rowSpan ?? 1}
+					<AlbumCard
+						{album}
+						tier={getTier(album)}
+						smColSpan={smLayout[i]?.colSpan ?? 1}
+						smRowSpan={smLayout[i]?.rowSpan ?? 1}
+						lgColSpan={lgLayout[i]?.colSpan ?? 1}
+						lgRowSpan={lgLayout[i]?.rowSpan ?? 1}
 					/>
 				{/each}
 			</div>

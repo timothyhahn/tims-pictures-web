@@ -145,7 +145,11 @@
 
 	{#if !initialLoad}
 		<div out:fade={{ duration: 200 }}>
-			<SkeletonGrid count={9} columns="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" aspectRatio="3/2" />
+			<SkeletonGrid
+				count={9}
+				columns="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+				aspectRatio="3/2"
+			/>
 		</div>
 	{:else if loadError}
 		<ErrorState
@@ -156,16 +160,16 @@
 		/>
 	{:else}
 		<div in:fade={{ duration: 300, delay: 100 }}>
-		<MasonryPhotoGrid
-			pictures={pagination.pictures}
-			{useColumnsLayout}
-			backLocation="album"
-			albumIdentifier={album?.slug || album?.id?.toString()}
-			totalPictureCount={data.album.picture_count}
-			onPhotoClick={handlePhotoClick}
-		/>
+			<MasonryPhotoGrid
+				pictures={pagination.pictures}
+				{useColumnsLayout}
+				backLocation="album"
+				albumIdentifier={album?.slug || album?.id?.toString()}
+				totalPictureCount={data.album.picture_count}
+				onPhotoClick={handlePhotoClick}
+			/>
 
-		<LoadingSpinner show={pagination.loading && pagination.pictures.length > 0} />
+			<LoadingSpinner show={pagination.loading && pagination.pictures.length > 0} />
 		</div>
 	{/if}
 </div>

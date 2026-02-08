@@ -22,7 +22,19 @@
 		onClose?: () => void;
 	}
 
-	let { picture, albumSlug, albumName, backLocation = 'album', currentIndex, totalCount, showControls = $bindable(true), showInfo = $bindable(false), onNext, onPrevious, onClose }: Props = $props();
+	let {
+		picture,
+		albumSlug,
+		albumName,
+		backLocation = 'album',
+		currentIndex,
+		totalCount,
+		showControls = $bindable(true),
+		showInfo = $bindable(false),
+		onNext,
+		onPrevious,
+		onClose
+	}: Props = $props();
 	let hideControlsTimeout: ReturnType<typeof setTimeout> | null = null;
 	let imageLoaded = $state(false);
 	let isDesktop = $state(false);
@@ -31,7 +43,9 @@
 	onMount(() => {
 		const mql = window.matchMedia('(min-width: 768px)');
 		isDesktop = mql.matches;
-		const handler = (e: MediaQueryListEvent) => { isDesktop = e.matches; };
+		const handler = (e: MediaQueryListEvent) => {
+			isDesktop = e.matches;
+		};
 		mql.addEventListener('change', handler);
 		return () => mql.removeEventListener('change', handler);
 	});

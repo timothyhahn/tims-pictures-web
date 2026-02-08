@@ -14,7 +14,9 @@
 
 	onMount(() => {
 		// Small delay so the draw animation is visible after page transition
-		const t = setTimeout(() => { mounted = true; }, 100);
+		const t = setTimeout(() => {
+			mounted = true;
+		}, 100);
 		return () => {
 			clearTimeout(t);
 			if (closeTimeout) clearTimeout(closeTimeout);
@@ -41,16 +43,8 @@
 		stroke-width="2"
 		stroke-linecap="round"
 	>
-		<line
-			x1="6" y1="6" x2="18" y2="18"
-			class="close-line close-line-1"
-			class:draw={mounted}
-		/>
-		<line
-			x1="18" y1="6" x2="6" y2="18"
-			class="close-line close-line-2"
-			class:draw={mounted}
-		/>
+		<line x1="6" y1="6" x2="18" y2="18" class="close-line close-line-1" class:draw={mounted} />
+		<line x1="18" y1="6" x2="6" y2="18" class="close-line close-line-2" class:draw={mounted} />
 	</svg>
 	<span
 		class="pointer-events-none absolute top-full right-0 mt-2 rounded bg-black/90 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100"
@@ -79,7 +73,9 @@
 	/* Close animation: X collapses and fades */
 	.close-svg {
 		transform-origin: center;
-		transition: transform 0.3s ease-in, opacity 0.3s ease-in;
+		transition:
+			transform 0.3s ease-in,
+			opacity 0.3s ease-in;
 	}
 
 	.close-svg.closing {

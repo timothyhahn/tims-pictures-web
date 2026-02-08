@@ -12,7 +12,14 @@
 		lgRowSpan?: number;
 	}
 
-	let { album, tier = 'small', smColSpan = 1, smRowSpan = 1, lgColSpan = 1, lgRowSpan = 1 }: Props = $props();
+	let {
+		album,
+		tier = 'small',
+		smColSpan = 1,
+		smRowSpan = 1,
+		lgColSpan = 1,
+		lgRowSpan = 1
+	}: Props = $props();
 </script>
 
 <a

@@ -115,11 +115,7 @@ function buildOverrides(spans: AlbumSpan[]): Map<number, SizeOverride> {
 	return overrides;
 }
 
-function tryLayout(
-	spans: AlbumSpan[],
-	n: number,
-	numColumns: number
-): { perfect: boolean } {
+function tryLayout(spans: AlbumSpan[], n: number, numColumns: number): { perfect: boolean } {
 	const overrides = buildOverrides(spans);
 	const layout = simulateGridLayout(n, 0, numColumns, overrides);
 	return { perfect: isLayoutGapFree(layout.allItems, numColumns) };
@@ -134,10 +130,7 @@ function tryLayout(
  */
 function isLayoutGapFree(items: GridItem[], numColumns: number): boolean {
 	if (items.length === 0) return true;
-	const actualMaxRow = items.reduce(
-		(max, item) => Math.max(max, item.row + item.rowSpan - 1),
-		0
-	);
+	const actualMaxRow = items.reduce((max, item) => Math.max(max, item.row + item.rowSpan - 1), 0);
 	const actualTotalRows = actualMaxRow + 1;
 	const filledCells = items.reduce((sum, item) => sum + item.colSpan * item.rowSpan, 0);
 	return filledCells === actualTotalRows * numColumns;

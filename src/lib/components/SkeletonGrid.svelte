@@ -18,9 +18,6 @@
 
 <div class="grid {columns} {gap} {padding}">
 	{#each Array(count) as _}
-		<div
-			class="animate-pulse rounded bg-gray-800"
-			style="aspect-ratio: {aspectRatio};"
-		></div>
+		<div class="animate-pulse rounded bg-gray-800" style="aspect-ratio: {aspectRatio};"></div>
 	{/each}
 </div>
