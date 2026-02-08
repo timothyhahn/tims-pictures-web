@@ -12,9 +12,12 @@
 		onPrevious?: () => void;
 		onNext?: () => void;
 		onToggleInfo: () => void;
-		onGoToAlbum?: () => void;
 		picture: Picture;
 		backLocation: string;
+		albumSlug?: string;
+		albumName?: string;
+		currentIndex?: number;
+		totalCount?: number;
 	}
 
 	let {
@@ -23,9 +26,12 @@
 		onPrevious,
 		onNext,
 		onToggleInfo,
-		onGoToAlbum,
 		picture,
-		backLocation
+		backLocation,
+		albumSlug,
+		albumName,
+		currentIndex,
+		totalCount
 	}: Props = $props();
 
 	async function handleDownload(e: MouseEvent) {
@@ -37,8 +43,28 @@
 
 {#if showControls}
 	<div class="pointer-events-none absolute inset-0 transition-opacity duration-300">
-		<!-- Top bar with close button -->
-		<div class="absolute top-0 right-0 left-0 bg-gradient-to-b from-black/50 to-transparent p-4">
+		<!-- Top bar with close button and breadcrumb -->
+		<div class="absolute top-0 right-0 left-0 flex items-center justify-between bg-gradient-to-b from-black/90 via-black/50 to-transparent p-4 pb-12">
+			{#if albumName && albumSlug}
+				<nav aria-label="Breadcrumb" class="pointer-events-auto text-xl text-gray-200">
+					{#if backLocation === 'home'}
+						<a href="/albums/{albumSlug}" class="flex items-center gap-1.5 transition-colors hover:text-white">
+							<Album size={20} />
+							<span>{albumName}</span>
+						</a>
+					{:else}
+						<a href="/albums" class="transition-colors hover:text-white">Albums</a>
+						<span class="mx-1.5 text-gray-400">/</span>
+						<a href="/albums/{albumSlug}" class="transition-colors hover:text-white">{albumName}</a>
+						{#if currentIndex !== undefined && currentIndex >= 0 && totalCount}
+							<span class="mx-1.5 text-gray-400">/</span>
+							<span class="text-gray-300">Photo {currentIndex + 1} of {totalCount}</span>
+						{/if}
+					{/if}
+				</nav>
+			{:else}
+				<div></div>
+			{/if}
 			<IconButtonWithTooltip
 				icon={X}
 				label="Close"
@@ -79,7 +105,7 @@
 		{/if}
 
 		<!-- Bottom controls -->
-		<div class="absolute bottom-0 left-0 flex gap-2 p-4">
+		<div class="absolute bottom-0 right-0 left-0 flex gap-2 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-4 pt-12">
 			<IconButtonWithTooltip
 				icon={Info}
 				label="Toggle info"
@@ -87,16 +113,6 @@
 				onclick={onToggleInfo}
 				tooltipPosition="top"
 			/>
-
-			{#if backLocation === 'home' && onGoToAlbum}
-				<IconButtonWithTooltip
-					icon={Album}
-					label="Go to album"
-					tooltip="View Album"
-					onclick={onGoToAlbum}
-					tooltipPosition="top"
-				/>
-			{/if}
 
 			<ShareMenu pictureId={picture.id} />
 

@@ -19,6 +19,8 @@ export interface Album {
 export interface Picture {
 	id: string;
 	album_id: string;
+	album_name?: string;
+	album_slug?: string;
 	created_at: string;
 	updated_at: string;
 	image_url: string;

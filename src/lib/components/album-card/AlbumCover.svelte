@@ -20,7 +20,7 @@
 		<img
 			src="{coverUrl}?class=thumbnail"
 			alt="{albumName} cover"
-			class="image-fade-in relative h-full w-full object-cover"
+			class="image-fade-in relative h-full w-full object-cover group-hover:scale-[1.03]"
 			loading="lazy"
 			onload={handleImageLoad}
 		/>

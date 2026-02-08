@@ -10,11 +10,13 @@
 
 	interface AlbumData {
 		albumSlug: string;
+		albumName: string;
 		allPictures: Picture[];
 		currentIndex: number;
 	}
 
 	let albumData = $state<AlbumData | null>(null);
+	let lightboxControlsVisible = $state(true);
 
 	// Get the 'back' query param, default to 'album'
 	let backLocation = $derived($page.url.searchParams.get('back') || 'album');
@@ -87,7 +89,11 @@
 		<Lightbox
 			{picture}
 			albumSlug={data.albumSlug}
+			albumName={data.albumName}
 			{backLocation}
+			currentIndex={data.currentIndex}
+			totalCount={data.allPictures.length}
+			bind:showControls={lightboxControlsVisible}
 			{...hasNext && { onNext: () => handleNext(data.allPictures, data.currentIndex) }}
 			{...hasPrev && { onPrevious: () => handlePrevious(data.allPictures, data.currentIndex) }}
 			onClose={() => handleClose(data.albumSlug)}

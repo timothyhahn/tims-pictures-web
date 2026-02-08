@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
+	import { fade } from 'svelte/transition';
 	import PhotoGrid from '$lib/components/PhotoGrid.svelte';
 	import ScrollToTopButton from '$lib/components/ScrollToTopButton.svelte';
 	import PageMetadata from '$lib/components/PageMetadata.svelte';
-	import LoadingState from '$lib/components/LoadingState.svelte';
+	import SkeletonGrid from '$lib/components/SkeletonGrid.svelte';
 	import ErrorState from '$lib/components/ErrorState.svelte';
 	import { saveHomeState, loadHomeState } from '$lib/utils/navigationState';
 	import { useInfiniteScroll } from '$lib/composables/useInfiniteScroll.svelte';
@@ -90,7 +91,9 @@
 <div class="container mx-auto">
 	<!-- Loading State -->
 	{#if !initialPicturesLoaded}
-		<LoadingState message="Loading pictures..." size="large" />
+		<div out:fade={{ duration: 200 }}>
+			<SkeletonGrid count={12} aspectRatio="1" />
+		</div>
 	{:else if loadError}
 		<ErrorState
 			message="Failed to load pictures"
@@ -100,7 +103,9 @@
 		/>
 	{:else}
 		<!-- Photo Grid -->
-		<PhotoGrid pictures={pagination.pictures} onPhotoClick={handlePhotoClick} />
+		<div in:fade={{ duration: 300, delay: 100 }}>
+			<PhotoGrid pictures={pagination.pictures} onPhotoClick={handlePhotoClick} />
+		</div>
 	{/if}
 </div>
 

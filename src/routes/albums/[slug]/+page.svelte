@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { fade } from 'svelte/transition';
 	import ScrollToTopButton from '$lib/components/ScrollToTopButton.svelte';
 	import AlbumHeader from '$lib/components/AlbumHeader.svelte';
 	import MasonryPhotoGrid from '$lib/components/masonry-photo-grid/MasonryPhotoGrid.svelte';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import LoadingState from '$lib/components/LoadingState.svelte';
+	import SkeletonGrid from '$lib/components/SkeletonGrid.svelte';
 	import ErrorState from '$lib/components/ErrorState.svelte';
 	import PageMetadata from '$lib/components/PageMetadata.svelte';
 	import { saveAlbumState, loadAlbumState, savePictureNavState } from '$lib/utils/navigationState';
@@ -128,7 +129,9 @@
 	<AlbumHeader {album} totalPictures={data.album.picture_count} loading={!album} />
 
 	{#if !initialLoad}
-		<LoadingState message="Loading pictures..." size="large" />
+		<div out:fade={{ duration: 200 }}>
+			<SkeletonGrid count={9} columns="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" aspectRatio="3/2" />
+		</div>
 	{:else if loadError}
 		<ErrorState
 			message="Failed to load pictures"
@@ -137,6 +140,7 @@
 			size="large"
 		/>
 	{:else}
+		<div in:fade={{ duration: 300, delay: 100 }}>
 		<MasonryPhotoGrid
 			pictures={pagination.pictures}
 			{useColumnsLayout}
@@ -147,6 +151,7 @@
 		/>
 
 		<LoadingSpinner show={pagination.loading && pagination.pictures.length > 0} />
+		</div>
 	{/if}
 </div>
 

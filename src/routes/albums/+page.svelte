@@ -1,6 +1,6 @@
 <script lang="ts">
+	import { fade } from 'svelte/transition';
 	import AlbumCard from '$lib/components/album-card/AlbumCard.svelte';
-	import LoadingState from '$lib/components/LoadingState.svelte';
 	import ErrorState from '$lib/components/ErrorState.svelte';
 	import type { PageData } from './$types';
 
@@ -23,10 +23,20 @@
 
 	<!-- Albums Grid -->
 	{#await data.albums}
-		<LoadingState message="Loading albums..." size="large" />
+		<div out:fade={{ duration: 200 }} class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+			{#each Array(6) as _}
+				<div class="overflow-hidden rounded bg-gray-800">
+					<div class="aspect-video w-full animate-pulse bg-gray-700/50"></div>
+					<div class="p-4">
+						<div class="mb-2 h-5 w-32 animate-pulse rounded bg-gray-700"></div>
+						<div class="h-3 w-16 animate-pulse rounded bg-gray-700"></div>
+					</div>
+				</div>
+			{/each}
+		</div>
 	{:then albums}
 		{#if albums.length > 0}
-			<div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+			<div in:fade={{ duration: 300, delay: 100 }} class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
 				{#each albums as album (album.slug)}
 					<AlbumCard {album} />
 				{/each}

@@ -12,6 +12,11 @@
 
 {#if album}
 	<div class="mb-8">
+		<nav aria-label="Breadcrumb" class="mb-4 text-sm text-gray-500">
+			<a href="/albums" class="transition-colors hover:text-white">Albums</a>
+			<span class="mx-2">/</span>
+			<span class="text-gray-300">{album.name}</span>
+		</nav>
 		<h1 class="mb-2 text-6xl font-extralight">{album.name}</h1>
 		{#if album.description}
 			<p class="text-lg text-gray-400">{album.description}</p>

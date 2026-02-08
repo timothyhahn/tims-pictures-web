@@ -23,6 +23,7 @@
 			{backLocation}
 			imageStyle="aspect-ratio: 1;"
 			onPhotoClick={handleClick}
+			showAlbumBadge
 		/>
 	{/each}
 </div>

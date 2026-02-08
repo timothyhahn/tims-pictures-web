@@ -9,16 +9,19 @@
 	interface Props {
 		picture: Picture;
 		albumSlug?: string;
+		albumName?: string;
 		backLocation?: string;
+		currentIndex?: number;
+		totalCount?: number;
+		showControls?: boolean;
 		onNext?: () => void;
 		onPrevious?: () => void;
 		onClose?: () => void;
 	}
 
-	let { picture, albumSlug, backLocation = 'album', onNext, onPrevious, onClose }: Props = $props();
+	let { picture, albumSlug, albumName, backLocation = 'album', currentIndex, totalCount, showControls = $bindable(true), onNext, onPrevious, onClose }: Props = $props();
 
 	let showInfo = $state(false);
-	let showControls = $state(true);
 	let hideControlsTimeout: ReturnType<typeof setTimeout> | null = null;
 	let imageLoaded = $state(false);
 
@@ -54,12 +57,6 @@
 
 	function toggleInfo() {
 		showInfo = !showInfo;
-	}
-
-	function goToAlbum() {
-		if (albumSlug) {
-			goto(`/albums/${albumSlug}`);
-		}
 	}
 
 	function handleClose() {
@@ -108,6 +105,12 @@
 
 	$effect(() => {
 		document.addEventListener('keydown', handleKeydown);
+
+		// Start auto-hide timer on mount so controls fade even without mouse movement
+		hideControlsTimeout = setTimeout(() => {
+			showControls = false;
+		}, 2000);
+
 		return () => {
 			document.removeEventListener('keydown', handleKeydown);
 			if (hideControlsTimeout) {
@@ -175,9 +178,12 @@
 		{...onPrevious && { onPrevious: handlePrevious }}
 		{...onNext && { onNext: handleNext }}
 		onToggleInfo={toggleInfo}
-		{...albumSlug && backLocation === 'home' && { onGoToAlbum: goToAlbum }}
 		{picture}
 		{backLocation}
+		{...albumSlug && { albumSlug }}
+		{...albumName && { albumName }}
+		{...currentIndex !== undefined && { currentIndex }}
+		{...totalCount !== undefined && { totalCount }}
 	/>
 
 	<!-- Info panel -->
