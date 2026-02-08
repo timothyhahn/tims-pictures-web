@@ -26,6 +26,7 @@
 	stroke="currentColor"
 	stroke-width="2"
 	stroke-linecap="round"
+	aria-hidden="true"
 >
 	<line x1="6" y1="6" x2="18" y2="18" class="close-line close-line-1" class:draw={mounted} />
 	<line x1="18" y1="6" x2="6" y2="18" class="close-line close-line-2" class:draw={mounted} />

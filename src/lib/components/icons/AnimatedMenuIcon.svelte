@@ -14,6 +14,7 @@
 	stroke="currentColor"
 	stroke-width="2"
 	stroke-linecap="round"
+	aria-hidden="true"
 >
 	<line x1="4" y1="12" x2="20" y2="12" class="menu-line top" class:open />
 	<line x1="4" y1="12" x2="20" y2="12" class="menu-line bottom" class:open />

@@ -235,6 +235,7 @@
 		left: 0;
 		right: 0;
 		height: 1px;
+		pointer-events: none;
 		background:
 			/* static base border */
 			linear-gradient(

@@ -65,7 +65,7 @@
 		aria-label={label}
 		onmouseenter={interaction.onMouseEnter}
 		onmouseleave={interaction.onMouseLeave}
-		onclick={() => interaction.onPress()}
+		onclick={handleClick}
 	>
 		<span class="icon-depress">
 			<IconComponent class={iconSizeClass} />
