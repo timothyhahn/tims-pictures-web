@@ -170,6 +170,145 @@ describe('formatMetadata', () => {
 		});
 	});
 
+	describe('film stock detection', () => {
+		it('detects Kodak Gold with format', () => {
+			const result = formatMetadata({ ImageDescription: 'Kodak Gold 200 (FF)' });
+			expect(result).toHaveLength(2);
+			expect(result[0]!).toEqual({ label: 'Film Stock', value: 'Kodak Gold 200' });
+			expect(result[1]!).toEqual({ label: 'Format', value: '35mm' });
+		});
+
+		it('detects Kodak Ektar with format', () => {
+			const result = formatMetadata({ ImageDescription: 'Kodak Ektar 100 (FF)' });
+			expect(result).toHaveLength(2);
+			expect(result[0]!).toEqual({ label: 'Film Stock', value: 'Kodak Ektar 100' });
+			expect(result[1]!).toEqual({ label: 'Format', value: '35mm' });
+		});
+
+		it('detects Kodak Portra with medium format', () => {
+			const result = formatMetadata({
+				ImageDescription: 'Kodak Portra 400 (6x6)'
+			});
+			expect(result).toHaveLength(2);
+			expect(result[0]!).toEqual({ label: 'Film Stock', value: 'Kodak Portra 400' });
+			expect(result[1]!).toEqual({ label: 'Format', value: '6x6' });
+		});
+
+		it('detects Kodak Gold with 6x9 format', () => {
+			const result = formatMetadata({
+				ImageDescription: 'Kodak Gold 200 (6x9)'
+			});
+			expect(result).toHaveLength(2);
+			expect(result[0]!).toEqual({ label: 'Film Stock', value: 'Kodak Gold 200' });
+			expect(result[1]!).toEqual({ label: 'Format', value: '6x9' });
+		});
+
+		it('detects Ilford Delta and strips format', () => {
+			const result = formatMetadata({
+				ImageDescription: 'Ilford Delta 3200 (FF)'
+			});
+			expect(result[0]!).toEqual({
+				label: 'Film Stock',
+				value: 'Ilford Delta 3200'
+			});
+			expect(result[1]!).toEqual({ label: 'Format', value: '35mm' });
+		});
+
+		it('detects Ilford HP5 with push notation and no format', () => {
+			const result = formatMetadata({ ImageDescription: 'Ilford HP5 +2' });
+			expect(result).toHaveLength(1);
+			expect(result[0]!).toEqual({ label: 'Film Stock', value: 'Ilford HP5 +2' });
+		});
+
+		it('detects Fujifilm Provia from Fujichrome description', () => {
+			const result = formatMetadata({
+				ImageDescription: 'Fujifilm Fujichrome Provia 100F (6x9)'
+			});
+			expect(result[0]!).toEqual({
+				label: 'Film Stock',
+				value: 'Fujifilm Provia 100F'
+			});
+			expect(result[1]!).toEqual({ label: 'Format', value: '6x9' });
+		});
+
+		it('detects Fujifilm 200 Color Negative with display override', () => {
+			const result = formatMetadata({
+				ImageDescription: 'Fujifilm FUJIFILM 200 Color Negative (FF)'
+			});
+			expect(result[0]!).toEqual({ label: 'Film Stock', value: 'Fujifilm 200' });
+			expect(result[1]!).toEqual({ label: 'Format', value: '35mm' });
+		});
+
+		it('handles quoted ImageDescription', () => {
+			const result = formatMetadata({
+				ImageDescription: '"Kodak Portra 400 (6x6)"'
+			});
+			expect(result[0]!).toEqual({ label: 'Film Stock', value: 'Kodak Portra 400' });
+			expect(result[1]!).toEqual({ label: 'Format', value: '6x6' });
+		});
+
+		it('matches case-insensitively', () => {
+			const result = formatMetadata({ ImageDescription: 'kodak portra 400' });
+			expect(result).toHaveLength(1);
+			expect(result[0]!.label).toBe('Film Stock');
+		});
+
+		it('detects T-Max with hyphen', () => {
+			const result = formatMetadata({ ImageDescription: 'Kodak T-Max 400' });
+			expect(result[0]!).toEqual({ label: 'Film Stock', value: 'Kodak T-Max 400' });
+		});
+
+		it('detects TMax without hyphen', () => {
+			const result = formatMetadata({ ImageDescription: 'Kodak TMax 400' });
+			expect(result[0]!).toEqual({ label: 'Film Stock', value: 'Kodak TMax 400' });
+		});
+
+		it('detects Tri-X with hyphen', () => {
+			const result = formatMetadata({ ImageDescription: 'Kodak Tri-X 400' });
+			expect(result[0]!).toEqual({ label: 'Film Stock', value: 'Kodak Tri-X 400' });
+		});
+
+		it('detects Cinestill 800T', () => {
+			const result = formatMetadata({ ImageDescription: 'Cinestill 800T' });
+			expect(result[0]!).toEqual({ label: 'Film Stock', value: 'Cinestill 800T' });
+		});
+
+		it('detects Cinestill 50 D with space', () => {
+			const result = formatMetadata({ ImageDescription: 'Cinestill 50 D' });
+			expect(result[0]!.label).toBe('Film Stock');
+		});
+
+		it('does not match ImageJ software metadata', () => {
+			const result = formatMetadata({ ImageDescription: 'ImageJ=1.54p' });
+			expect(result).toHaveLength(0);
+		});
+
+		it('does not match ImageJ software metadata variant', () => {
+			const result = formatMetadata({ ImageDescription: 'ImageJ=1.54f' });
+			expect(result).toHaveLength(0);
+		});
+
+		it('does not match Negative Lab Pro metadata', () => {
+			const result = formatMetadata({
+				ImageDescription:
+					'Negative Lab Pro v3.0.2 | Color Model: B+W | Pre-Sat: 3 | Tone Profile: Linear + Gamma | WB: None | LUT: Frontier'
+			});
+			expect(result).toHaveLength(0);
+		});
+
+		it('does not match arbitrary description text', () => {
+			const result = formatMetadata({
+				ImageDescription: 'A nice sunset photo'
+			});
+			expect(result).toHaveLength(0);
+		});
+
+		it('does not match bare 800T without Cinestill prefix', () => {
+			const result = formatMetadata({ ImageDescription: '800T something' });
+			expect(result).toHaveLength(0);
+		});
+	});
+
 	describe('complete metadata', () => {
 		it('formats all fields correctly', () => {
 			const result = formatMetadata({
@@ -181,10 +320,11 @@ describe('formatMetadata', () => {
 				Make: 'Canon',
 				Model: 'EOS R5',
 				LensMake: 'Canon',
-				LensModel: 'RF 50mm f/1.2L USM'
+				LensModel: 'RF 50mm f/1.2L USM',
+				ImageDescription: 'Kodak Portra 400 (FF)'
 			});
 
-			expect(result).toHaveLength(7);
+			expect(result).toHaveLength(9);
 			expect(result[0]!).toEqual({ label: 'Time', value: '2024-01-15 14:30:00' });
 			expect(result[1]!).toEqual({ label: 'Shutter Speed', value: '1/250' });
 			expect(result[2]!).toEqual({ label: 'Aperture', value: 'f/2.8' });
@@ -192,6 +332,8 @@ describe('formatMetadata', () => {
 			expect(result[4]!).toEqual({ label: 'Focal Length', value: '50mm' });
 			expect(result[5]!).toEqual({ label: 'Camera', value: 'Canon EOS R5' });
 			expect(result[6]!).toEqual({ label: 'Lens', value: 'Canon RF 50mm f/1.2L USM' });
+			expect(result[7]!).toEqual({ label: 'Film Stock', value: 'Kodak Portra 400' });
+			expect(result[8]!).toEqual({ label: 'Format', value: '35mm' });
 		});
 	});
 });

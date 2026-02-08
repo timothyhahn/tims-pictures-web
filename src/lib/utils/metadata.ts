@@ -3,6 +3,83 @@ export interface MetadataItem {
 	value: string;
 }
 
+interface FilmStock {
+	brand: string;
+	name: string;
+	pattern: RegExp;
+	displayName?: string;
+}
+
+const FILM_STOCKS: FilmStock[] = [
+	// Kodak
+	{ brand: 'Kodak', name: 'Ektar', pattern: /\bektar\b/i },
+	{ brand: 'Kodak', name: 'Ektachrome', pattern: /\bektachrome\b/i },
+	{ brand: 'Kodak', name: 'Vision', pattern: /\bkodak\s+vision\b/i },
+	{ brand: 'Kodak', name: 'Gold', pattern: /\bkodak\s+gold\b/i },
+	{ brand: 'Kodak', name: 'Ultramax', pattern: /\bultramax\b/i },
+	{ brand: 'Kodak', name: 'Colorplus', pattern: /\bcolorplus\b/i },
+	{ brand: 'Kodak', name: 'Portra', pattern: /\bportra\b/i },
+	{ brand: 'Kodak', name: 'Tri-X', pattern: /\btri-?x\b/i },
+	{ brand: 'Kodak', name: 'T-Max', pattern: /\bt-?max\b/i },
+	// Fujifilm
+	{ brand: 'Fujifilm', name: 'Velvia', pattern: /\bvelvia\b/i },
+	{ brand: 'Fujifilm', name: 'Provia', pattern: /\bprovia\b/i },
+	{ brand: 'Fujifilm', name: 'Fujicolor', pattern: /\bfujicolor\b/i },
+	{
+		brand: 'Fujifilm',
+		name: '200',
+		pattern: /fujifilm\s+\d+\s*color\s*negative/i,
+		displayName: 'Fujifilm 200'
+	},
+	// Cinestill
+	{ brand: 'Cinestill', name: '800T', pattern: /\bcinestill\s+800\s*t\b/i },
+	{ brand: 'Cinestill', name: '500T', pattern: /\bcinestill\s+500\s*t\b/i },
+	{ brand: 'Cinestill', name: '400D', pattern: /\bcinestill\s+400\s*d\b/i },
+	{ brand: 'Cinestill', name: '50D', pattern: /\bcinestill\s+50\s*d\b/i },
+	// Ilford
+	{ brand: 'Ilford', name: 'Delta', pattern: /\bdelta\b/i },
+	{ brand: 'Ilford', name: 'Kentmere', pattern: /\bkentmere\b/i },
+	{ brand: 'Ilford', name: 'HP5', pattern: /\bhp5\b/i },
+	{ brand: 'Ilford', name: 'FP4', pattern: /\bfp4\b/i }
+];
+
+function detectFilmStock(raw: string): { filmStock: string; format: string | null } | null {
+	const cleaned = raw.replace(/"/g, '');
+
+	// Extract format from trailing parenthetical e.g. (FF), (6x6)
+	let format: string | null = null;
+	const formatMatch = cleaned.match(/\(([^)]+)\)\s*$/);
+	if (formatMatch) {
+		format = /^ff$/i.test(formatMatch[1]) ? '35mm' : formatMatch[1];
+	}
+
+	// Remove the parenthetical for matching
+	const withoutFormat = cleaned.replace(/\s*\([^)]+\)\s*$/, '').trim();
+
+	for (const stock of FILM_STOCKS) {
+		if (stock.pattern.test(withoutFormat)) {
+			if (stock.displayName) {
+				return { filmStock: stock.displayName, format };
+			}
+
+			// Construct display: brand + name + suffix (ISO, push/pull, etc.)
+			const namePattern = new RegExp(stock.name.replace(/-/g, '-?'), 'i');
+			const nameMatch = withoutFormat.match(namePattern);
+			if (nameMatch) {
+				const afterName = withoutFormat.slice(nameMatch.index! + nameMatch[0].length);
+				return {
+					filmStock: `${stock.brand} ${nameMatch[0]}${afterName}`,
+					format
+				};
+			}
+
+			return { filmStock: `${stock.brand} ${stock.name}`, format };
+		}
+	}
+
+	return null;
+}
+
 /**
  * Formats EXIF metadata into display-friendly key-value pairs.
  *
@@ -14,6 +91,8 @@ export interface MetadataItem {
  * - Focal Length: Prefers 35mm equivalent, adds 'mm' suffix
  * - Camera: Combines Make and Model, strips quotes
  * - Lens: Combines LensMake and LensModel, strips quotes
+ * - Film Stock: Detected from ImageDescription by matching known film stock names
+ * - Format: Extracted from ImageDescription parenthetical (FF→35mm, 6x6, 6x9, etc.)
  *
  * @param metadata - Raw EXIF metadata as key-value string pairs
  * @returns Array of formatted metadata items for display
@@ -78,6 +157,18 @@ export function formatMetadata(metadata: Record<string, string>): MetadataItem[]
 		items.push({ label: 'Lens', value: `${lensMake} ${lensModel}` });
 	} else if (lensModel) {
 		items.push({ label: 'Lens', value: lensModel });
+	}
+
+	// Film Stock & Format
+	const imageDescription = metadata.ImageDescription;
+	if (imageDescription) {
+		const detected = detectFilmStock(imageDescription);
+		if (detected) {
+			items.push({ label: 'Film Stock', value: detected.filmStock });
+			if (detected.format) {
+				items.push({ label: 'Format', value: detected.format });
+			}
+		}
 	}
 
 	return items;
