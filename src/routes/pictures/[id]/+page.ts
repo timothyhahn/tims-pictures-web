@@ -48,6 +48,8 @@ export const load: PageLoad = async ({ params, fetch }) => {
 				return {
 					albumSlug: album.slug,
 					albumName: album.name,
+					...(album.description && { albumDescription: album.description as string }),
+					albumPictureCount: album.picture_count as number,
 					allPictures: cachedNavState.pictures,
 					currentIndex
 				};
@@ -57,6 +59,8 @@ export const load: PageLoad = async ({ params, fetch }) => {
 			return {
 				albumSlug: album.slug,
 				albumName: album.name,
+				...(album.description && { albumDescription: album.description as string }),
+				albumPictureCount: album.picture_count as number,
 				allPictures: [],
 				currentIndex: -1
 			};

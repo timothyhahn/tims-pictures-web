@@ -12,11 +12,18 @@
 
 {#if album}
 	<div class="mb-8">
-		<h1 class="mb-2 text-6xl font-extralight">{album.name}</h1>
+		<nav aria-label="Breadcrumb" class="mb-4 text-sm text-gray-500 md:hidden">
+			<a href="/albums" class="transition-colors hover:text-white">Albums</a>
+			<span class="mx-2">/</span>
+			<span class="text-gray-300">{album.name}</span>
+		</nav>
+		{#key album.slug}
+			<h1 class="title-reveal mb-2 text-6xl font-extralight">{album.name}</h1>
+		{/key}
 		{#if album.description}
-			<p class="text-lg text-gray-400">{album.description}</p>
+			<p class="text-lg text-gray-400 md:hidden">{album.description}</p>
 		{/if}
-		<p class="mt-2 text-sm text-gray-500">
+		<p class="mt-2 text-sm text-gray-500 md:hidden">
 			{totalPictures}
 			{totalPictures === 1 ? 'photo' : 'photos'}
 		</p>
@@ -26,3 +33,18 @@
 		<div class="h-10 w-64 animate-pulse rounded bg-gray-700"></div>
 	</div>
 {/if}
+
+<style>
+	.title-reveal {
+		animation: title-reveal 0.6s ease-out 0.85s both;
+	}
+
+	@keyframes title-reveal {
+		from {
+			clip-path: inset(-10% 100% -10% 0);
+		}
+		to {
+			clip-path: inset(-10% 0% -10% 0);
+		}
+	}
+</style>

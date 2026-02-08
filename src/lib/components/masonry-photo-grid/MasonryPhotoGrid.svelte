@@ -16,6 +16,7 @@
 		backLocation?: string;
 		albumIdentifier?: string; // UUID or slug to determine pattern
 		onPhotoClick?: (event: MouseEvent, picture: Picture) => void;
+		showAlbumBadge?: boolean;
 	}
 
 	let {
@@ -24,7 +25,8 @@
 		useColumnsLayout = false,
 		backLocation = 'album',
 		albumIdentifier,
-		onPhotoClick
+		onPhotoClick,
+		showAlbumBadge = false
 	}: Props = $props();
 
 	// Get optimized masonry layout configuration using total count
@@ -107,6 +109,7 @@
 				imageClass={getImageClass(index)}
 				itemClass={getItemClass(index)}
 				{backLocation}
+				{showAlbumBadge}
 				{...onPhotoClick && { onPhotoClick }}
 			/>
 		{/each}

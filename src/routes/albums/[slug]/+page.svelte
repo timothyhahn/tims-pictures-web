@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { onDestroy } from 'svelte';
+	import { fade } from 'svelte/transition';
 	import ScrollToTopButton from '$lib/components/ScrollToTopButton.svelte';
 	import AlbumHeader from '$lib/components/AlbumHeader.svelte';
 	import MasonryPhotoGrid from '$lib/components/masonry-photo-grid/MasonryPhotoGrid.svelte';
 	import LoadingSpinner from '$lib/components/LoadingSpinner.svelte';
-	import LoadingState from '$lib/components/LoadingState.svelte';
+	import SkeletonGrid from '$lib/components/SkeletonGrid.svelte';
 	import ErrorState from '$lib/components/ErrorState.svelte';
 	import PageMetadata from '$lib/components/PageMetadata.svelte';
 	import { saveAlbumState, loadAlbumState, savePictureNavState } from '$lib/utils/navigationState';
@@ -13,6 +15,7 @@
 	import { handlePrimaryClick } from '$lib/utils/photoClick';
 	import { scrollToTop, restoreScrollPosition } from '$lib/utils/scroll';
 	import { PICTURES_PER_PAGE, COLUMN_LAYOUT_THRESHOLD } from '$lib/constants';
+	import { setSidebarContext, clearSidebarContext } from '$lib/stores/sidebarContext';
 	import type { PageData } from './$types';
 	import type { Picture } from '$lib/api/types';
 
@@ -92,6 +95,21 @@
 		}
 	});
 
+	// Set sidebar context for this album
+	$effect(() => {
+		if (album) {
+			setSidebarContext({
+				type: 'album',
+				albumName: album.name,
+				albumSlug: album.slug,
+				description: album.description,
+				pictureCount: data.album.picture_count
+			});
+		}
+	});
+
+	onDestroy(clearSidebarContext);
+
 	const handlePhotoClick = handlePrimaryClick((_event: MouseEvent, picture: Picture) => {
 		// Save state for returning to album
 		saveAlbumState(
@@ -128,7 +146,13 @@
 	<AlbumHeader {album} totalPictures={data.album.picture_count} loading={!album} />
 
 	{#if !initialLoad}
-		<LoadingState message="Loading pictures..." size="large" />
+		<div out:fade={{ duration: 200 }}>
+			<SkeletonGrid
+				count={9}
+				columns="grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+				aspectRatio="3/2"
+			/>
+		</div>
 	{:else if loadError}
 		<ErrorState
 			message="Failed to load pictures"
@@ -137,16 +161,18 @@
 			size="large"
 		/>
 	{:else}
-		<MasonryPhotoGrid
-			pictures={pagination.pictures}
-			{useColumnsLayout}
-			backLocation="album"
-			albumIdentifier={album?.slug || album?.id?.toString()}
-			totalPictureCount={data.album.picture_count}
-			onPhotoClick={handlePhotoClick}
-		/>
+		<div in:fade={{ duration: 300, delay: 100 }}>
+			<MasonryPhotoGrid
+				pictures={pagination.pictures}
+				{useColumnsLayout}
+				backLocation="album"
+				albumIdentifier={album?.slug || album?.id?.toString()}
+				totalPictureCount={data.album.picture_count}
+				onPhotoClick={handlePhotoClick}
+			/>
 
-		<LoadingSpinner show={pagination.loading && pagination.pictures.length > 0} />
+			<LoadingSpinner show={pagination.loading && pagination.pictures.length > 0} />
+		</div>
 	{/if}
 </div>
 

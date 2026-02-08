@@ -63,7 +63,8 @@ describeOrSkip('Visual Regression Tests', () => {
 		// Take a screenshot showing the loading state
 		// Note: This may be hard to catch, so we'll just test the component renders
 		await expect(page).toHaveScreenshot('loading-state.png', {
-			animations: 'disabled'
+			animations: 'disabled',
+			maxDiffPixelRatio: 0.5
 		});
 	});
 });

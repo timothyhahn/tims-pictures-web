@@ -1,26 +1,54 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 	import type { Picture } from '$lib/api/types';
 	import { formatMetadata } from '$lib/utils/metadata';
 	import { createTouchGestureHandler } from '$lib/utils/touchGestures';
+	import { sidebarRevealed } from '$lib/stores/sidebarContext';
 	import LightboxControls from './LightboxControls.svelte';
 	import LightboxInfo from './LightboxInfo.svelte';
 
 	interface Props {
 		picture: Picture;
 		albumSlug?: string;
+		albumName?: string;
 		backLocation?: string;
+		currentIndex?: number;
+		totalCount?: number;
+		showControls?: boolean;
+		showInfo?: boolean;
 		onNext?: () => void;
 		onPrevious?: () => void;
 		onClose?: () => void;
 	}
 
-	let { picture, albumSlug, backLocation = 'album', onNext, onPrevious, onClose }: Props = $props();
-
-	let showInfo = $state(false);
-	let showControls = $state(true);
+	let {
+		picture,
+		albumSlug,
+		albumName,
+		backLocation = 'album',
+		currentIndex,
+		totalCount,
+		showControls = $bindable(true),
+		showInfo = $bindable(false),
+		onNext,
+		onPrevious,
+		onClose
+	}: Props = $props();
 	let hideControlsTimeout: ReturnType<typeof setTimeout> | null = null;
 	let imageLoaded = $state(false);
+	let isDesktop = $state(false);
+
+	// Track desktop breakpoint for sidebar reveal behavior
+	onMount(() => {
+		const mql = window.matchMedia('(min-width: 768px)');
+		isDesktop = mql.matches;
+		const handler = (e: MediaQueryListEvent) => {
+			isDesktop = e.matches;
+		};
+		mql.addEventListener('change', handler);
+		return () => mql.removeEventListener('change', handler);
+	});
 
 	// Create touch gesture handler with multitouch detection
 	const touchHandler = createTouchGestureHandler({
@@ -41,6 +69,16 @@
 			: []
 	);
 
+	// On desktop, showInfo reveals the sidebar; on mobile, it shows the overlay
+	let showSidebar = $derived(showInfo && isDesktop);
+	let showMobileInfo = $derived(showInfo && !isDesktop);
+
+	// Sync sidebar revealed state for view transition z-index
+	$effect(() => {
+		sidebarRevealed.set(showSidebar);
+		return () => sidebarRevealed.set(false);
+	});
+
 	// Action to check if image is already cached and set loaded immediately
 	function checkIfCached(node: HTMLImageElement) {
 		// Use nextTick to run after effect has set imageLoaded = false
@@ -54,12 +92,6 @@
 
 	function toggleInfo() {
 		showInfo = !showInfo;
-	}
-
-	function goToAlbum() {
-		if (albumSlug) {
-			goto(`/albums/${albumSlug}`);
-		}
 	}
 
 	function handleClose() {
@@ -108,6 +140,12 @@
 
 	$effect(() => {
 		document.addEventListener('keydown', handleKeydown);
+
+		// Start auto-hide timer on mount so controls fade even without mouse movement
+		hideControlsTimeout = setTimeout(() => {
+			showControls = false;
+		}, 2000);
+
 		return () => {
 			document.removeEventListener('keydown', handleKeydown);
 			if (hideControlsTimeout) {
@@ -120,8 +158,8 @@
 <svelte:window onmousemove={handleMouseMove} />
 
 <div
-	class="fixed inset-0 z-50 flex items-center justify-center"
-	style="background-color: var(--color-bg);"
+	class="fixed inset-0 z-50 flex items-center justify-center transition-[left] duration-300 ease-in-out"
+	style="background-color: var(--color-bg); left: {showSidebar ? '16rem' : '0'};"
 	ontouchstart={touchHandler.handleTouchStart}
 	ontouchmove={touchHandler.handleTouchMove}
 	ontouchend={touchHandler.handleTouchEnd}
@@ -171,17 +209,21 @@
 	<!-- Controls -->
 	<LightboxControls
 		{showControls}
+		{showSidebar}
 		onClose={handleClose}
 		{...onPrevious && { onPrevious: handlePrevious }}
 		{...onNext && { onNext: handleNext }}
 		onToggleInfo={toggleInfo}
-		{...albumSlug && backLocation === 'home' && { onGoToAlbum: goToAlbum }}
 		{picture}
 		{backLocation}
+		{...albumSlug && { albumSlug }}
+		{...albumName && { albumName }}
+		{...currentIndex !== undefined && { currentIndex }}
+		{...totalCount !== undefined && { totalCount }}
 	/>
 
-	<!-- Info panel -->
-	{#if showInfo}
+	<!-- Info panel (mobile only) -->
+	{#if showMobileInfo}
 		<LightboxInfo
 			{...picture.description && { description: picture.description }}
 			metadata={formattedMetadata}

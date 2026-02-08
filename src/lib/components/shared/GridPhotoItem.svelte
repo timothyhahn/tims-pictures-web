@@ -14,6 +14,7 @@
 		fillHeight?: boolean;
 		onPhotoClick?: (event: MouseEvent, picture: Picture) => void;
 		preloadData?: boolean;
+		showAlbumBadge?: boolean;
 	}
 
 	let {
@@ -24,7 +25,8 @@
 		imageStyle = '',
 		fillHeight = false,
 		onPhotoClick,
-		preloadData = true
+		preloadData = true,
+		showAlbumBadge = false
 	}: Props = $props();
 
 	function handleImageLoad(event: Event) {
@@ -46,7 +48,8 @@
 	>
 		<img
 			src="{picture.image_url}?class={imageClass}"
-			alt={picture.description || 'Photo'}
+			alt={picture.description ||
+				(picture.album_name ? `Photo from ${picture.album_name}` : 'Photo')}
 			class="image-fade-in relative w-full cursor-pointer {fillHeight
 				? 'h-full object-cover'
 				: 'h-auto object-cover'}"
@@ -55,4 +58,12 @@
 			onload={handleImageLoad}
 		/>
 	</a>
+
+	{#if showAlbumBadge && picture.album_name}
+		<div
+			class="pointer-events-none absolute right-0 bottom-0 left-0 bg-gradient-to-t from-black/70 to-transparent px-3 pt-6 pb-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+		>
+			<span class="text-xs text-white/90">Album: {picture.album_name}</span>
+		</div>
+	{/if}
 </div>

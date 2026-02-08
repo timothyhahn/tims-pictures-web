@@ -13,6 +13,7 @@
 
 <div
 	class="absolute top-0 bottom-0 left-0 w-full overflow-y-auto bg-gray-900/95 backdrop-blur-sm md:w-96"
+	style="view-transition-name: lightbox-info;"
 >
 	<div class="p-6">
 		<div class="mb-6 flex items-start justify-between">

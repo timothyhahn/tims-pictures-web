@@ -4,16 +4,17 @@
 		description?: string;
 		pictureCount: number;
 		hasPassword: boolean;
+		tier?: 'large' | 'medium' | 'small';
 	}
 
-	let { name, description, pictureCount, hasPassword }: Props = $props();
+	let { name, description, pictureCount, hasPassword, tier = 'small' }: Props = $props();
 </script>
 
-<div class="p-4">
-	<h3 class="mb-1 text-xl font-thin">{name}</h3>
+<div class={tier === 'large' ? 'p-5' : 'p-4'}>
+	<h3 class="mb-1 font-thin {tier === 'large' ? 'text-2xl' : 'text-xl'}">{name}</h3>
 
 	{#if description}
-		<p class="mb-2 line-clamp-2 text-sm text-gray-400">
+		<p class="mb-2 text-sm text-gray-400 {tier === 'large' ? 'line-clamp-3' : 'line-clamp-2'}">
 			{description}
 		</p>
 	{/if}

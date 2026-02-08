@@ -8,9 +8,17 @@
 		itemClass: string;
 		backLocation: string;
 		onPhotoClick?: (event: MouseEvent, picture: Picture) => void;
+		showAlbumBadge?: boolean;
 	}
 
-	let { picture, imageClass, itemClass, backLocation, onPhotoClick }: Props = $props();
+	let {
+		picture,
+		imageClass,
+		itemClass,
+		backLocation,
+		onPhotoClick,
+		showAlbumBadge = false
+	}: Props = $props();
 
 	// Determine if we should fill height based on layout type
 	// Columns layout (break-inside-avoid) should use natural height
@@ -24,6 +32,7 @@
 	{imageClass}
 	containerClass="photo-item mb-4 {itemClass}"
 	{fillHeight}
+	{showAlbumBadge}
 	{...onPhotoClick && { onPhotoClick }}
 	preloadData={false}
 />

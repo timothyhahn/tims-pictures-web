@@ -6,7 +6,8 @@
 		icon: ComponentType<any>;
 		label: string;
 		tooltip: string;
-		onclick: (e: MouseEvent) => void;
+		onclick?: (e: MouseEvent) => void;
+		href?: string;
 		iconSize?: 'sm' | 'md' | 'lg';
 		tooltipPosition?: 'top' | 'bottom' | 'left' | 'right';
 		buttonClass?: string;
@@ -18,6 +19,7 @@
 		label,
 		tooltip,
 		onclick,
+		href,
 		iconSize = 'md',
 		tooltipPosition = 'bottom',
 		buttonClass = '',
@@ -38,17 +40,28 @@
 	);
 
 	const tooltipPositionClass = $derived(tooltipClass || defaultTooltipPositionClass);
+
+	const sharedClass = $derived(
+		`group/tooltip pointer-events-auto relative cursor-pointer rounded-lg p-2 text-white transition-colors hover:bg-white/20 ${buttonClass}`
+	);
 </script>
 
-<button
-	{onclick}
-	class="group/tooltip pointer-events-auto relative cursor-pointer rounded-lg p-2 text-white transition-colors hover:bg-white/20 {buttonClass}"
-	aria-label={label}
->
-	<IconComponent class={iconSizeClass} />
-	<span
-		class="pointer-events-none absolute rounded bg-black/90 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100 {tooltipPositionClass}"
-	>
-		{tooltip}
-	</span>
-</button>
+{#if href}
+	<a {href} class={sharedClass} aria-label={label}>
+		<IconComponent class={iconSizeClass} />
+		<span
+			class="pointer-events-none absolute rounded bg-black/90 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100 {tooltipPositionClass}"
+		>
+			{tooltip}
+		</span>
+	</a>
+{:else}
+	<button type="button" {onclick} class={sharedClass} aria-label={label}>
+		<IconComponent class={iconSizeClass} />
+		<span
+			class="pointer-events-none absolute rounded bg-black/90 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100 {tooltipPositionClass}"
+		>
+			{tooltip}
+		</span>
+	</button>
+{/if}
