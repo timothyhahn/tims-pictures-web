@@ -107,22 +107,22 @@
 />
 
 {#if picture && albumData}
-	{@const data = albumData}
-	{@const hasNext = backLocation !== 'home' && data.currentIndex < data.allPictures.length - 1}
-	{@const hasPrev = backLocation !== 'home' && data.currentIndex > 0}
+	{@const album = albumData}
+	{@const hasNext = backLocation !== 'home' && album.currentIndex < album.allPictures.length - 1}
+	{@const hasPrev = backLocation !== 'home' && album.currentIndex > 0}
 	{#key picture.id}
 		<Lightbox
 			{picture}
-			albumSlug={data.albumSlug}
-			albumName={data.albumName}
+			albumSlug={album.albumSlug}
+			albumName={album.albumName}
 			{backLocation}
-			currentIndex={data.currentIndex}
-			totalCount={data.allPictures.length}
+			currentIndex={album.currentIndex}
+			totalCount={album.allPictures.length}
 			bind:showControls={lightboxControlsVisible}
 			bind:showInfo={lightboxInfoVisible}
-			{...hasNext && { onNext: () => handleNext(data.allPictures, data.currentIndex) }}
-			{...hasPrev && { onPrevious: () => handlePrevious(data.allPictures, data.currentIndex) }}
-			onClose={() => handleClose(data.albumSlug)}
+			{...hasNext && { onNext: () => handleNext(album.allPictures, album.currentIndex) }}
+			{...hasPrev && { onPrevious: () => handlePrevious(album.allPictures, album.currentIndex) }}
+			onClose={() => handleClose(album.albumSlug)}
 		/>
 	{/key}
 {:else}

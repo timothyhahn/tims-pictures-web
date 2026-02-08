@@ -144,7 +144,7 @@
 <svelte:window onmousemove={handleMouseMove} />
 
 <div
-	class="fixed inset-0 z-50 flex items-center justify-center overflow-hidden transition-[left] duration-300 ease-in-out"
+	class="fixed inset-0 z-50 flex items-center justify-center transition-[left] duration-300 ease-in-out"
 	style="background-color: var(--color-bg); left: {showSidebar ? '16rem' : '0'};"
 	ontouchstart={touchHandler.handleTouchStart}
 	ontouchmove={touchHandler.handleTouchMove}

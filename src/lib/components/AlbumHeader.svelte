@@ -17,7 +17,9 @@
 			<span class="mx-2">/</span>
 			<span class="text-gray-300">{album.name}</span>
 		</nav>
-		<h1 class="mb-2 text-6xl font-extralight">{album.name}</h1>
+		{#key album.slug}
+			<h1 class="title-reveal mb-2 text-6xl font-extralight">{album.name}</h1>
+		{/key}
 		{#if album.description}
 			<p class="text-lg text-gray-400 md:hidden">{album.description}</p>
 		{/if}
@@ -31,3 +33,18 @@
 		<div class="h-10 w-64 animate-pulse rounded bg-gray-700"></div>
 	</div>
 {/if}
+
+<style>
+	.title-reveal {
+		animation: title-reveal 0.6s ease-out 0.85s both;
+	}
+
+	@keyframes title-reveal {
+		from {
+			clip-path: inset(0 100% 0 0);
+		}
+		to {
+			clip-path: inset(0 0 0 0);
+		}
+	}
+</style>

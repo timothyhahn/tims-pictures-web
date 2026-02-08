@@ -2,9 +2,12 @@
 	interface Props {
 		coverUrl?: string;
 		albumName: string;
+		tier?: 'large' | 'medium' | 'small';
 	}
 
-	let { coverUrl, albumName }: Props = $props();
+	let { coverUrl, albumName, tier = 'small' }: Props = $props();
+
+	let imageSize = $derived(tier === 'large' ? 'medium' : 'thumbnail');
 
 	function handleImageLoad(event: Event) {
 		const img = event.target as HTMLImageElement;
@@ -13,20 +16,20 @@
 </script>
 
 {#if coverUrl}
-	<div class="relative aspect-video w-full overflow-hidden bg-gray-900">
+	<div class="relative min-h-0 flex-1 overflow-hidden bg-gray-900">
 		<!-- Pulsing placeholder -->
 		<div class="absolute inset-0 animate-pulse bg-gray-700/50"></div>
 
 		<img
-			src="{coverUrl}?class=thumbnail"
+			src="{coverUrl}?class={imageSize}"
 			alt="{albumName} cover"
-			class="image-fade-in relative h-full w-full object-cover group-hover:scale-[1.03]"
+			class="image-fade-in relative h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
 			loading="lazy"
 			onload={handleImageLoad}
 		/>
 	</div>
 {:else}
-	<div class="flex aspect-video w-full items-center justify-center bg-gray-900">
+	<div class="flex min-h-0 flex-1 items-center justify-center bg-gray-900">
 		<svg class="h-16 w-16 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 			<path
 				stroke-linecap="round"

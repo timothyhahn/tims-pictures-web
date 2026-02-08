@@ -133,12 +133,14 @@
 					}}
 					class="group relative mb-6 block overflow-hidden rounded"
 				>
-					<div class="relative">
-						<div class="absolute inset-0 animate-pulse bg-gray-700/50"></div>
+					<div class="relative min-h-[40vh]">
+						<div class="hero-skeleton absolute inset-0 flex items-center justify-center bg-gray-800">
+							<span class="hero-skeleton-text text-2xl font-thin tracking-widest text-gray-500">Loading Tim's Pictures</span>
+						</div>
 						<img
 							src="{heroPicture.image_url}?class=full-width"
 							alt={heroPicture.description || (heroPicture.album_name ? `Photo from ${heroPicture.album_name}` : 'Photo')}
-							class="image-fade-in relative w-full max-h-[60vh] object-cover"
+							class="hero-drift image-fade-in relative w-full max-h-[60vh] object-cover"
 							style="view-transition-name: picture-{heroPicture.id};"
 							onload={handleHeroImageLoad}
 						/>
@@ -155,7 +157,7 @@
 			<MasonryPhotoGrid
 				pictures={gridPictures}
 				albumIdentifier="home-recent"
-				totalPictureCount={MAX_PICTURES}
+				totalPictureCount={MAX_PICTURES - 1}
 				backLocation="home"
 				showAlbumBadge
 				onPhotoClick={handleGridPhotoClick}
@@ -165,3 +167,36 @@
 </div>
 
 <ScrollToTopButton show={scroll.scrollY > 300} {scrollToTop} />
+
+<style>
+	.hero-drift {
+		animation: hero-drift 25s ease-in-out infinite;
+	}
+
+	@keyframes hero-drift {
+		0%,
+		100% {
+			transform: scale(1.03);
+		}
+		33% {
+			transform: scale(1.06) translate(-0.7%, -0.4%);
+		}
+		66% {
+			transform: scale(1.05) translate(0.5%, 0.3%);
+		}
+	}
+
+	.hero-skeleton-text {
+		animation: skeleton-shimmer 2.5s ease-in-out infinite;
+	}
+
+	@keyframes skeleton-shimmer {
+		0%,
+		100% {
+			opacity: 0.3;
+		}
+		50% {
+			opacity: 0.7;
+		}
+	}
+</style>

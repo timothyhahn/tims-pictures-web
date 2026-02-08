@@ -47,7 +47,7 @@
 
 <!-- Desktop Navigation - Left Sidebar -->
 <nav
-	class="fixed top-0 left-0 hidden h-screen w-64 flex-col p-6 text-white md:flex"
+	class="fixed top-0 left-0 z-40 hidden h-screen w-64 flex-col p-6 text-white md:flex"
 	style="background-color: var(--color-bg);{$sidebarRevealed ? ' view-transition-name: sidebar;' : ''}"
 >
 	<!-- Logo/Branding -->
