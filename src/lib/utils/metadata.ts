@@ -28,7 +28,7 @@ const FILM_STOCKS: FilmStock[] = [
 	{
 		brand: 'Fujifilm',
 		name: '200',
-		pattern: /fujifilm\s+\d+\s*color\s*negative/i,
+		pattern: /fujifilm\s+200\s*color\s*negative/i,
 		displayName: 'Fujifilm 200'
 	},
 	// Cinestill
@@ -49,8 +49,9 @@ function detectFilmStock(raw: string): { filmStock: string; format: string | nul
 	// Extract format from trailing parenthetical e.g. (FF), (6x6)
 	let format: string | null = null;
 	const formatMatch = cleaned.match(/\(([^)]+)\)\s*$/);
-	if (formatMatch) {
-		format = /^ff$/i.test(formatMatch[1]) ? '35mm' : formatMatch[1];
+	if (formatMatch && formatMatch[1]) {
+		const rawFormat = formatMatch[1].trim();
+		format = /^ff$/i.test(rawFormat) ? '35mm' : rawFormat;
 	}
 
 	// Remove the parenthetical for matching
@@ -63,7 +64,8 @@ function detectFilmStock(raw: string): { filmStock: string; format: string | nul
 			}
 
 			// Construct display: brand + name + suffix (ISO, push/pull, etc.)
-			const namePattern = new RegExp(stock.name.replace(/-/g, '-?'), 'i');
+			const escaped = stock.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+			const namePattern = new RegExp(escaped.replace(/-/g, '-?'), 'i');
 			const nameMatch = withoutFormat.match(namePattern);
 			if (nameMatch) {
 				const afterName = withoutFormat.slice(nameMatch.index! + nameMatch[0].length);
