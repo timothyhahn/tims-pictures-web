@@ -1,5 +1,9 @@
 <script lang="ts">
-	import { Info, Download, Album, ChevronLeft, ChevronRight } from 'lucide-svelte';
+	import InfoIcon from '../icons/InfoIcon.svelte';
+	import DownloadIcon from '../icons/DownloadIcon.svelte';
+	import AlbumIcon from '../icons/AlbumIcon.svelte';
+	import ChevronLeftIcon from '../icons/ChevronLeftIcon.svelte';
+	import ChevronRightIcon from '../icons/ChevronRightIcon.svelte';
 	import type { Picture } from '$lib/api/types';
 	import ShareMenu from '../shared/ShareMenu.svelte';
 	import IconButtonWithTooltip from '../shared/IconButtonWithTooltip.svelte';
@@ -66,7 +70,7 @@
 						href="/albums/{albumSlug}"
 						class="flex items-center gap-1.5 transition-colors hover:text-white"
 					>
-						<Album size={20} />
+						<AlbumIcon class="h-5 w-5" />
 						<span>{albumName}</span>
 					</a>
 				{:else}
@@ -89,7 +93,7 @@
 	{#if onPrevious}
 		<div class="absolute top-0 bottom-0 left-0 flex items-center p-4">
 			<IconButtonWithTooltip
-				icon={ChevronLeft}
+				icon={ChevronLeftIcon}
 				label="Previous photo"
 				tooltip="Previous (←)"
 				onclick={onPrevious}
@@ -104,7 +108,7 @@
 	{#if onNext}
 		<div class="absolute top-0 right-0 bottom-0 flex items-center p-4">
 			<IconButtonWithTooltip
-				icon={ChevronRight}
+				icon={ChevronRightIcon}
 				label="Next photo"
 				tooltip="Next (→)"
 				onclick={onNext}
@@ -121,7 +125,7 @@
 		style={gradientStyle}
 	>
 		<IconButtonWithTooltip
-			icon={Info}
+			icon={InfoIcon}
 			label="Toggle info"
 			tooltip="Info (I)"
 			onclick={onToggleInfo}
@@ -130,7 +134,7 @@
 
 		{#if albumSlug && backLocation === 'home'}
 			<IconButtonWithTooltip
-				icon={Album}
+				icon={AlbumIcon}
 				label="Go to album"
 				tooltip={albumName || 'Album'}
 				href="/albums/{albumSlug}"
@@ -141,7 +145,7 @@
 		<ShareMenu pictureId={picture.id} />
 
 		<IconButtonWithTooltip
-			icon={Download}
+			icon={DownloadIcon}
 			label="Download photo"
 			tooltip="Download"
 			onclick={handleDownload}

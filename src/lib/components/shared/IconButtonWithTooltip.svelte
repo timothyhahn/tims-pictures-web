@@ -1,9 +1,10 @@
 <script lang="ts">
-	import type { ComponentType } from 'svelte';
+	import type { Component, ComponentType } from 'svelte';
+	import { useIconInteraction } from '$lib/composables/useIconInteraction.svelte';
 
 	interface Props {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		icon: ComponentType<any>;
+		icon: Component<any> | ComponentType<any>;
 		label: string;
 		tooltip: string;
 		onclick?: (e: MouseEvent) => void;
@@ -26,6 +27,8 @@
 		tooltipClass = ''
 	}: Props = $props();
 
+	const interaction = useIconInteraction();
+
 	const iconSizeClass = $derived(
 		iconSize === 'sm' ? 'h-4 w-4' : iconSize === 'lg' ? 'h-8 w-8' : 'h-6 w-6'
 	);
@@ -44,11 +47,29 @@
 	const sharedClass = $derived(
 		`group/tooltip pointer-events-auto relative cursor-pointer rounded-lg p-2 text-white transition-colors hover:bg-white/20 ${buttonClass}`
 	);
+
+	const stateClasses = $derived(
+		`${interaction.hovered ? 'icon-hovered' : ''} ${interaction.pressed ? 'icon-pressed' : ''}`
+	);
+
+	function handleClick(e: MouseEvent) {
+		interaction.onPress();
+		onclick?.(e);
+	}
 </script>
 
 {#if href}
-	<a {href} class={sharedClass} aria-label={label}>
-		<IconComponent class={iconSizeClass} />
+	<a
+		{href}
+		class="{sharedClass} {stateClasses}"
+		aria-label={label}
+		onmouseenter={interaction.onMouseEnter}
+		onmouseleave={interaction.onMouseLeave}
+		onclick={handleClick}
+	>
+		<span class="icon-depress">
+			<IconComponent class={iconSizeClass} />
+		</span>
 		<span
 			class="pointer-events-none absolute rounded bg-black/90 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100 {tooltipPositionClass}"
 		>
@@ -56,8 +77,17 @@
 		</span>
 	</a>
 {:else}
-	<button type="button" {onclick} class={sharedClass} aria-label={label}>
-		<IconComponent class={iconSizeClass} />
+	<button
+		type="button"
+		onclick={handleClick}
+		class="{sharedClass} {stateClasses}"
+		aria-label={label}
+		onmouseenter={interaction.onMouseEnter}
+		onmouseleave={interaction.onMouseLeave}
+	>
+		<span class="icon-depress">
+			<IconComponent class={iconSizeClass} />
+		</span>
 		<span
 			class="pointer-events-none absolute rounded bg-black/90 px-2 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity group-hover/tooltip:opacity-100 {tooltipPositionClass}"
 		>

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { X } from 'lucide-svelte';
+	import AnimatedCloseIcon from '../icons/AnimatedCloseIcon.svelte';
 	import type { MetadataItem } from '$lib/utils/metadata';
 
 	interface Props {
@@ -22,7 +22,7 @@
 				onclick={onClose}
 				class="cursor-pointer p-1 text-gray-400 transition-colors hover:text-white"
 			>
-				<X class="h-5 w-5" />
+				<AnimatedCloseIcon class="h-5 w-5" />
 			</button>
 		</div>
 
