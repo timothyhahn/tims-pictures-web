@@ -65,6 +65,23 @@ export const mockPictures = {
 	total_pages: 1
 };
 
+export const mockPrivateAlbum = {
+	id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+	created_at: '2025-10-03T16:48:09.520292000Z',
+	updated_at: '2025-10-03T16:48:26.037495000Z',
+	name: 'Secret Album',
+	slug: 'secret-album',
+	description: 'A private test album',
+	visibility: 'private',
+	has_password: true,
+	cover_picture_id: '18208992-966e-417f-a7be-7aa985178192',
+	cover_picture_url: 'https://timspictures.b-cdn.net/fd9a76bd-4fe8-4620-8f6e-bb6a81bd0b42.jpg',
+	picture_count: 3
+};
+
+export const PRIVATE_ALBUM_PASSWORD = 'secret-password';
+export const MOCK_JWT_TOKEN = 'mock-jwt-token-for-secret-album';
+
 /**
  * Returns mock response for a given API path during E2E tests
  * Returns null if no mock is available for the path
